@@ -1,4 +1,5 @@
-(ns fogus.maps)
+(ns fogus.maps
+  (:require fogus.meta))
 
 (defn keys-apply [f ks m]
   "Takes a function, a set of keys, and a map and applies
@@ -19,4 +20,21 @@
   ;=> {:a 2, :c 4}
   (manip-map inc [:a :c] {:a 1, :b 2, :c 3})
   ;=> {:c 4, :b 2, :a 2}
+)
+
+(defn assoc-iff
+  ([m k v]
+   (if (nil? v)
+     (fogus.meta/mupdate m ::missed-keys (fnil conj #{}) k)
+     (assoc m k v)))
+  ([m k v & kvs]
+   (reduce (fn [m [k v]] (assoc-iff m k v))
+           (assoc-iff m k v)
+           (partition 2 kvs))))
+
+(comment
+  (-> {}
+      (assoc-iff :a 1, :b 2, :c nil)
+      meta)
+
 )
