@@ -32,9 +32,15 @@
            (assoc-iff m k v)
            (partition 2 kvs))))
 
+(defn deep-merge [& vals]
+  (if (every? map? vals)
+    (apply merge-with deep-merge vals)
+    (last vals)))
+
 (comment
   (-> {}
       (assoc-iff :a 1, :b 2, :c nil)
       meta)
 
+  (deep-merge {:a 1} {:b 2} {:b 3 :c {:d 1}} {:c {:d 2}})
 )
