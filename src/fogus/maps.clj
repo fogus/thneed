@@ -1,7 +1,7 @@
 (ns fogus.maps
   (:require fogus.meta))
 
-(defn keys-apply [f ks m]
+(defn keys-apply [m ks f]
   "Takes a function, a set of keys, and a map and applies
    the function to the map on the given keys.  A new map of
    the results of the function applied to the keyed entries
@@ -9,17 +9,31 @@
   (let [only (select-keys m ks)]
     (zipmap (keys only) (map f (vals only)))))
 
-(defn manip-map [f ks m]
+(defn manip-map [m ks f]
   "Takes a function, a set of keys, and a map and applies the function
    to the map on the given keys.  A modified version of the original map
    is returned with the results of the function applied to each keyed entry."
-  (conj m (keys-apply f ks m)))
+  (conj m (keys-apply m ks f)))
+
+(defn manip-keys
+  [m ks f]
+  (reduce (fn [acc key]
+            (if-let [v (get m key)]
+              (-> acc
+                  (dissoc key)
+                  (assoc  (f key) v))
+              m))
+          m
+          ks))
 
 (comment
-  (keys-apply inc [:a :c] {:a 1, :b 2, :c 3})
-  ;=> {:a 2, :c 4}
-  (manip-map inc [:a :c] {:a 1, :b 2, :c 3})
-  ;=> {:c 4, :b 2, :a 2}
+  (keys-apply {:a 1, :b 2, :c 3} [:a :c] inc)
+  ;;=> {:a 2, :c 4}
+  (manip-map {:a 1, :b 2, :c 3} [:a :c] inc)
+  ;;=> {:c 4, :b 2, :a 2}
+
+  (manip-keys {:a 1, :b 2} [:a] str)
+  ;;=> {:b 2, ":a" 1}
 )
 
 (defn assoc-iff
