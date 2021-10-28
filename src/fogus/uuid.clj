@@ -23,7 +23,7 @@
   (^java.util.UUID [^String s]
    (try
      (java.util.UUID/fromString s)
-     (catch Exception _))))
+     (catch IllegalArgumentException _))))
 
 (defn uuid?
   {:doc "Return true if x is a java.util.UUID"
@@ -34,6 +34,5 @@
 
 (rand-uuid)
 (parse-uuid "3db4db90-37c7-42aa-941c-f621d0cec91f")
-(parse-uuid nil)
 (parse-uuid "")
 (-> (rand-uuid) str parse-uuid)
