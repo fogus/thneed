@@ -3,7 +3,7 @@
   (:import [java.io File ByteArrayInputStream ByteArrayOutputStream OutputStreamWriter]
            [com.cognitect.transit WriteHandler ReadHandler ArrayReadHandler MapReadHandler
             ArrayReader TransitFactory TransitFactory$Format MapReader]
-           [com.cognitect.transit.impl TagProvider TagProviderAware WriteHandlerMap]
+           [com.cognitect.transit.impl TagProvider TagProviderAware WriteHandlerMap WriteHandlers WriteHandlers$MapWriteHandler]
            [com.cognitect.transit.SPI ReaderSPI]
            [java.io InputStream OutputStream]
            [java.util.function Function]))
@@ -19,70 +19,7 @@ out
 ;;(transit/write w {(with-meta 'key {:foo 'bar}) 'val})
 out
 
-(defn nsed-name
-  "Convert a keyword or symbol to a string in
-   namespace/name format."
-  [^clojure.lang.Named kw-or-sym]
-  (if-let [ns (.getNamespace kw-or-sym)]
-    (str ns "/" (.getName kw-or-sym))
-    (.getName kw-or-sym)))
-
-(defn- fn-or-val
-  [f]
-  (if (fn? f) f (constantly f)))
-
-(def default-write-handlers
-  "Returns a map of default WriteHandlers for
-   Clojure types. Java types are handled
-   by the default WriteHandlers provided by the
-   transit-java library."
-  {
-   java.util.List
-   (reify WriteHandler
-     (tag [_ l] (if (seq? l) "list" "array"))
-     (rep [_ l] (if (seq? l) (TransitFactory/taggedValue "array" l) l))
-     (stringRep [_ _] nil)
-     (getVerboseHandler [_] nil))
-
-   clojure.lang.BigInt
-   (reify WriteHandler
-     (tag [_ _] "n")
-     (rep [_ bi] (str (biginteger bi)))
-     (stringRep [this bi] (.rep this bi))
-     (getVerboseHandler [_] nil))
-
-   clojure.lang.Keyword
-   (reify WriteHandler
-     (tag [_ _] ":")
-     (rep [_ kw] (nsed-name kw))
-     (stringRep [_ kw] (nsed-name kw))
-     (getVerboseHandler [_] nil))
-
-   clojure.lang.Ratio
-   (reify WriteHandler
-     (tag [_ _] "ratio")
-     (rep [_ r] (TransitFactory/taggedValue "array" [(numerator r) (denominator r)]))
-     (stringRep [_ _] nil)
-     (getVerboseHandler [_] nil))
-
-   clojure.lang.Symbol
-   (reify WriteHandler
-     (tag [_ _] "$")
-     (rep [_ sym] (nsed-name sym))
-     (stringRep [_ sym] (nsed-name sym))
-     (getVerboseHandler [_] nil))
-
-   cognitect.transit.WithMeta
-   (reify WriteHandler
-     (tag [_ _] "with-meta")
-     (rep [_ o]
-       (TransitFactory/taggedValue "array"
-         [(.-value ^cognitect.transit.WithMeta o)
-          (.-meta ^cognitect.transit.WithMeta o)]))
-     (stringRep [_ _] nil)
-     (getVerboseHandler [_] nil))})
-
-(def whm (TransitFactory/writeHandlerMap default-write-handlers))
+(def whm (TransitFactory/writeHandlerMap transit/default-write-handlers))
 
 (defn- stringable-keys? [^TagProvider tp m]
   (every? (fn [k]
@@ -98,3 +35,33 @@ out
 (stringable-keys? whm {"a" 1 :b 2 'c 3})
 (stringable-keys? whm {[] 1 :b 2})
 (stringable-keys? whm {(with-meta 'a {:foo 42}) 42})
+
+(deftype MapWriteHandler [^WriteHandlers$MapWriteHandler core-impl ^:volatile-mutable tag-provider]
+  TagProviderAware
+  (^void setTagProvider [_ ^TagProvider tp]
+   (.setTagProvider core-impl tp)
+   (set! tag-provider tp))
+
+  WriteHandler
+  (tag [_ m]
+    (if (stringable-keys? tag-provider m)
+      "map"
+      "cmap"))
+  (rep [_ o]
+    (.rep core-impl o))
+  (stringRep [_ _] nil)
+  (getVerboseHandler [_] nil))
+
+(def mwh (->> java.util.Map (get whm)))
+(.tag mwh {[] 1})
+
+(def ^WriteHandler mwh' (->MapWriteHandler (WriteHandlers$MapWriteHandler.) whm))
+(.setTagProvider mwh' whm)
+
+(.tag mwh' {'a 1 :b 2})
+(.tag mwh' {(with-meta 'a {:foo 42}) 1 :b 2})
+(.tag mwh' {[] 1 :b 2})
+
+(.rep mwh' {'a 1 :b 2})
+(.rep mwh' {[] 1 :b 2})
+
