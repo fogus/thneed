@@ -3,8 +3,6 @@
 
 (set! *warn-on-reflection* true)
 
-
-
 (defn rand-uuid
   {:doc "Returns a pseudo-randomly generated java.util.UUID instance (i.e. type 4).
 
