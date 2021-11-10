@@ -10,15 +10,6 @@
 
 (set! *warn-on-reflection* true)
 
-(def out (ByteArrayOutputStream. 2000))
-(def w (transit/writer out :json {:transform transit/write-meta}))
-
-(transit/write w {'key (with-meta 'val {:foo 'bar})})
-out
-
-;;(transit/write w {(with-meta 'key {:foo 'bar}) 'val})
-out
-
 (def whm (TransitFactory/writeHandlerMap transit/default-write-handlers))
 
 (defn- stringable-keys? [^TagProvider tp m]
@@ -47,16 +38,20 @@ out
     (if (stringable-keys? tag-provider m)
       "map"
       "cmap"))
-  (rep [_ o]
-    (.rep core-impl o))
+  (rep [_ m]
+    (if (stringable-keys? tag-provider m)
+      (.entrySet ^java.util.Map m)
+      (TransitFactory/taggedValue "array" (seq m))))
   (stringRep [_ _] nil)
   (getVerboseHandler [_] nil))
 
-(def mwh (->> java.util.Map (get whm)))
+(def ^WriteHandlers$MapWriteHandler mwh (->> java.util.Map (get whm)))
 (.tag mwh {[] 1})
 
+(class mwh)
+
 (def ^WriteHandler mwh' (->MapWriteHandler (WriteHandlers$MapWriteHandler.) whm))
-(.setTagProvider mwh' whm)
+(.setTagProvider ^TagProviderAware mwh' whm)
 
 (.tag mwh' {'a 1 :b 2})
 (.tag mwh' {(with-meta 'a {:foo 42}) 1 :b 2})
@@ -64,4 +59,27 @@ out
 
 (.rep mwh' {'a 1 :b 2})
 (.rep mwh' {[] 1 :b 2})
+
+(def writer-overrides {java.util.Map (->MapWriteHandler (WriteHandlers$MapWriteHandler.) whm)})
+(def overrides (transit/write-handler-map writer-overrides))
+
+(defn private-field [obj fn-name-string]
+  (let [m (.. obj getClass (getDeclaredField fn-name-string))]
+    (. m (setAccessible true))
+    (. m (get obj))))
+
+;(-> overrides transit/handler-map (private-field "handlers") (.put java.util.Map (->MapWriteHandler (WriteHandlers$MapWriteHandler.) whm)))
+;(-> overrides transit/handler-map (private-field "handlers") (.get java.util.Map))
+
+(def out (ByteArrayOutputStream. 2000))
+(def w (transit/writer out :json {:transform transit/write-meta, :handlers overrides}))
+
+;(transit/write w {'key (with-meta 'val {:foo 'bar})})
+out
+
+(transit/write w {(with-meta 'key {:foo 'bar}) 'val})
+out
+
+;(transit/write w {(with-meta 'key {:foo 'bar}) 'val, [] 42})
+
 

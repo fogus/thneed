@@ -1,7 +1,7 @@
 {
  :paths ["src/clj"]
  :deps  {org.clojure/clojure {:mvn/version "1.11.0-alpha2"}
-         com.cognitect/transit-java {:mvn/version "1.0.343"}
+         com.cognitect/transit-java {:mvn/version "dev"}
          com.cognitect/transit-clj {:mvn/version "1.0.324"}}
 
  :aliases
