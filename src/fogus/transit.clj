@@ -27,10 +27,9 @@
 (stringable-keys? whm {[] 1 :b 2})
 (stringable-keys? whm {(with-meta 'a {:foo 42}) 42})
 
-(deftype MapWriteHandler [^WriteHandlers$MapWriteHandler core-impl ^:volatile-mutable tag-provider]
+(deftype MapWriteHandler [^:volatile-mutable tag-provider]
   TagProviderAware
   (^void setTagProvider [_ ^TagProvider tp]
-   (.setTagProvider core-impl tp)
    (set! tag-provider tp))
 
   WriteHandler
@@ -50,7 +49,7 @@
 
 (class mwh)
 
-(def ^WriteHandler mwh' (->MapWriteHandler (WriteHandlers$MapWriteHandler.) whm))
+(def ^WriteHandler mwh' (->MapWriteHandler whm))
 (.setTagProvider ^TagProviderAware mwh' whm)
 
 (.tag mwh' {'a 1 :b 2})
@@ -60,7 +59,7 @@
 (.rep mwh' {'a 1 :b 2})
 (.rep mwh' {[] 1 :b 2})
 
-(def writer-overrides {java.util.Map (->MapWriteHandler (WriteHandlers$MapWriteHandler.) whm)})
+(def writer-overrides {java.util.Map (->MapWriteHandler whm)})
 (def overrides (transit/write-handler-map writer-overrides))
 
 (defn private-field [obj fn-name-string]
