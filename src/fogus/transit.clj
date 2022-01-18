@@ -40,7 +40,7 @@
   (rep [_ m]
     (if (stringable-keys? tag-provider m)
       (.entrySet ^java.util.Map m)
-      (TransitFactory/taggedValue "array" (seq m))))
+      (TransitFactory/taggedValue "array" (seq m)))) ;; always needs seq of Map.Entry?
   (stringRep [_ _] nil)
   (getVerboseHandler [_] nil))
 
