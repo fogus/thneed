@@ -86,9 +86,10 @@
         ;; TODO: check for private
         ;; TODO: ctor of more than 1-arg?
         ;; not seeing reflection warnings?
-        (cond static?            `(fn ~params (~form ~(with-meta (first params) {:type klass-sym}) ~@(rest params)))
+        (cond static?            `(fn ~params (~form ~@params))
               (ctor? method-sym) (let [p [(gensym)]] `(fn ~p (new ~klass ~@p)))
-              :default           `(fn ~params (. ~(first params) ~method-sym ~@(rest params))))))))
+              :default           `(fn ~(vec (cons (with-meta (first params) {:type klass}) (rest params)))
+                                    (. ~(first params) ~method-sym ~@(rest params))))))))
 
 (comment
   (attach-qmethod-reader! qmethod-rdr)
