@@ -4,6 +4,8 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
+(set! *warn-on-reflection* true)
+
 (defn get-field
   "Access to private or protected field.  field-name is a symbol or
   keyword."
@@ -19,8 +21,6 @@
   (aset (get-field clojure.lang.LispReader :dispatchMacros nil)
         (int \.)
         rdr))
-
-(set! *warn-on-reflection* true)
 
 (declare qmeth)
 
@@ -94,14 +94,22 @@
 (comment
   (attach-qmethod-reader! qmethod-rdr)
 
+  (import 'java.util.Collections)
+  (import 'java.util.Date)
+  (import 'java.sql.Time)
+  
   (read-string "#.Math/abs")
   (read-string "#.String/toUpperCase")
   (read-string "#.String.")
 
-  (map #.Math/abs [-1 2])
-  (map #.String/toUpperCase ["a" "foobar" "HeLLO"])
-  (map #.String. [(StringBuffer. "ab") "foo"])
-  (#.Math/abs -1)
+  (map #.Math/abs [-1 2])  ;; reflect, type overloads
+  (map #.Math/acos [0.2 0.1]) ;; no reflect, no overloads, single arity
+  (#.Collections/max [1 2 3 2 5 4 1]) ;; error, chooses 2-arity method
+  (map #.String/toUpperCase ["a" "foobar" "HeLLO"]) ;; no reflect, no overloads, single arity
+  (map #.String. [(StringBuffer. "ab") "foo"]) ;; reflection, chooses 1-arity but has overloads
+  (#.Math/abs -1) ;; reflect, type overloads
+  (#.Time. 1) ;; no reflect, 1-arity ctor is default, no type overload
+  (#.Date. 1) ;; reflect, 1-arity ctor is default, type overloads
 
   (map (fn [n] (Math/abs n)) [-1 2])
 )
