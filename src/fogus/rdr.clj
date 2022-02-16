@@ -13,7 +13,9 @@
       (doto (.setAccessible true))
       (.get obj)))
 
-(defn attach-qmethod-reader! [rdr]
+(defn attach-qmethod-reader!
+  "Jack into the LispReader dispatchMacros for the . character."
+  [rdr]
   (aset (get-field clojure.lang.LispReader :dispatchMacros nil)
         (int \.)
         rdr))
@@ -22,26 +24,51 @@
 
 (declare qmeth)
 
-(defn qmethod-rdr [rdr dot opts pending]
+(defn qmethod-rdr
+  "Passthrough to the read handler for the qualified method handler. Calls through
+  the Var for development purposes."
+  [rdr dot opts pending]
   (#'qmeth rdr dot opts pending))
 
-(defn- ctor? [sym]
+(defn- ctor?
+  "Does a symbol look like a constructor form?"
+  [sym]
   (let [^String nom (and sym (name sym))]
     (= (.indexOf nom (int \.)) (dec (.length nom)))))
 
-(defn- split-symbol [sym]
+(defn- split-symbol
+  "Splits a symbol of the form Class/method into two symbols, one for each part in a pair vector.
+  For a constructor form the method symbol remains as 'Class.'"
+  [sym]
   (let [[klass method] ((juxt namespace name) sym)
         klass (if (ctor? method) (->> method name seq butlast (string/join "") symbol) klass)]
     (let [nom (-> 'String. name )])
     [(when klass  (symbol klass))
      (when method (symbol method))]))
 
-(defn- classify-symbol [sym])
-
-(defn- overloads [details method-sym]
+(defn- overloads
+  "Returns a seq of the overides for a given method in clojure.reflect/reflect structs."
+  [details method-sym]
   (->> details :members (filter (comp #{method-sym} :name))))
 
-(defn qmeth [^PushbackReader rdr dot opts pending]
+(defn qmeth
+  "Reads a reader form for a qualified method or constructor and emits a structure
+  for a function that calls down to the given class member. The following forms
+  result in the corresponding functions:
+
+   #.Class/staticMethod => (fn [arg1 arg2] (Class/staticMethod arg1 arg2))
+
+   #.Class/boundMethod  => (fn [this arg1 arg2] (. this boundMethod arg1 arg2))
+
+   #.Class.             => (fn [arg1] (new Class boundMethod arg1))
+
+  Malformed qualified forms result in an exception at read time.
+  
+  Some error and warning modes are not yet handled:
+  - private methods
+  - multiple overloads
+  - class not resolved"
+  [^PushbackReader rdr dot opts pending]
   (let [form (LispReader/read rdr true nil false opts)]
     (when (not (symbol? form))
       (throw (RuntimeException. "expecting a symbol for reader form #.")))
@@ -56,25 +83,14 @@
             target  (first ovr)
             params  (map #(do % (gensym)) (:parameter-types target))
             params  (vec (if static? params (cons (gensym) params)))]
-        ;; TODO: what if private?
+        ;; TODO: check for private
         ;; TODO: ctor of more than 1-arg?
         (cond static?            `(fn ~params (~form ~@params))
               (ctor? method-sym) (let [p [(gensym)]] `(fn ~p (new ~klass ~@p)))
               :default           `(fn ~params (. ~(first params) ~method-sym ~@(rest params))))))))
 
 (comment
-  (split-symbol 'String/toUpperCase)
-  (split-symbol 'String.)
-
-  (let [sym 'String
-        klass (resolve sym)
-        details (ref/reflect klass)]
-    (->> details
-         :members
-         (map :name)))
-  
   (attach-qmethod-reader! qmethod-rdr)
-  Math
 
   (read-string "#.Math/abs")
   (read-string "#.String/toUpperCase")
@@ -83,5 +99,5 @@
   (map #.Math/abs [-1 2])
   (map #.String/toUpperCase ["a" "foobar" "HELLO"])
   (map #.String. [(StringBuffer. "ab") "foo"])
-
+  (#.Math/abs -1) 
 )
