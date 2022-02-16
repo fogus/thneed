@@ -88,7 +88,7 @@
         ;; not seeing reflection warnings?
         (cond static?            `(fn ~params (~form ~@params))
               (ctor? method-sym) (let [p [(gensym)]] `(fn ~p (new ~klass ~@p)))
-              :default           `(fn ~(vec (cons (with-meta (first params) {:type klass}) (rest params)))
+              :default           `(fn ~(vec (cons (with-meta (first params) {:tag klass-sym}) (rest params)))
                                     (. ~(first params) ~method-sym ~@(rest params))))))))
 
 (comment
