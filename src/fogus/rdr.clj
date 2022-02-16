@@ -60,7 +60,7 @@
 
    #.Class/boundMethod  => (fn [this arg1 arg2] (. this boundMethod arg1 arg2))
 
-   #.Class.             => (fn [arg1] (new Class boundMethod arg1))
+   #.Class.             => (fn [arg1] (new Class arg1))
 
   Malformed qualified forms result in an exception at read time.
   
@@ -85,6 +85,7 @@
             params  (vec (if static? params (cons (gensym) params)))]
         ;; TODO: check for private
         ;; TODO: ctor of more than 1-arg?
+        ;; not seeing reflection warnings?
         (cond static?            `(fn ~params (~form ~@params))
               (ctor? method-sym) (let [p [(gensym)]] `(fn ~p (new ~klass ~@p)))
               :default           `(fn ~params (. ~(first params) ~method-sym ~@(rest params))))))))
