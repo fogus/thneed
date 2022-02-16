@@ -86,7 +86,7 @@
         ;; TODO: check for private
         ;; TODO: ctor of more than 1-arg?
         ;; not seeing reflection warnings?
-        (cond static?            `(fn ~params (~form ~@params))
+        (cond static?            `(fn ~params (~form ~(with-meta (first params) {:type klass-sym}) ~@(rest params)))
               (ctor? method-sym) (let [p [(gensym)]] `(fn ~p (new ~klass ~@p)))
               :default           `(fn ~params (. ~(first params) ~method-sym ~@(rest params))))))))
 
@@ -98,7 +98,9 @@
   (read-string "#.String.")
 
   (map #.Math/abs [-1 2])
-  (map #.String/toUpperCase ["a" "foobar" "HELLO"])
+  (map #.String/toUpperCase ["a" "foobar" "HeLLO"])
   (map #.String. [(StringBuffer. "ab") "foo"])
-  (#.Math/abs -1) 
+  (#.Math/abs -1)
+
+  (map (fn [n] (Math/abs n)) [-1 2])
 )
