@@ -111,5 +111,14 @@
   (#.Time. 1) ;; no reflect, 1-arity ctor is default, no type overload
   (#.Date. 1) ;; reflect, 1-arity ctor is default, type overloads
 
-  (map (fn [n] (Math/abs n)) [-1 2])
+  (defn f [n]
+    (#.Date. ^long n))
+
+    (defn f [^long n]
+      ((fn [^long x] (Date. x)) n))
+  
+    (map (fn [n] (Math/abs n)) [-1 2])
+
+    (let [n -1]
+      (#.Math/abs n))
 )
