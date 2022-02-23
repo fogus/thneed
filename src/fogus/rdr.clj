@@ -4,8 +4,6 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-(set! *warn-on-reflection* true)
-
 (defn get-field
   "Access to private or protected field.  field-name is a symbol or
   keyword."
@@ -22,19 +20,9 @@
         (int \.)
         rdr))
 
+(set! *warn-on-reflection* true)
+
 (declare qmeth)
-
-(defn qmethod-rdr
-  "Passthrough to the read handler for the qualified method handler. Calls through
-  the Var for development purposes."
-  [rdr dot opts pending]
-  (#'qmeth rdr dot opts pending))
-
-(defn- ctor?
-  "Does a symbol look like a constructor form?"
-  [sym]
-  (let [^String nom (and sym (name sym))]
-    (= (.indexOf nom (int \.)) (dec (.length nom)))))
 
 (defn- split-symbol
   "Splits a symbol of the form Class/method into two symbols, one for each part in a pair vector.
@@ -46,12 +34,31 @@
     [(when klass  (symbol klass))
      (when method (symbol method))]))
 
+(defn qmethod-rdr
+  "Passthrough to the read handler for the qualified method handler. Calls through
+  the Var for development purposes."
+  [rdr dot opts pending]
+    (let [form (LispReader/read rdr true nil false opts)]
+    (when (not (symbol? form))
+      (throw (RuntimeException. "expecting a symbol for reader form #.")))
+    (let [[klass-sym method-sym] (split-symbol form)]
+      (when (not (and klass-sym method-sym))
+        (throw (RuntimeException. (str "expecting a qualified symbol for reader form #. got #." form " instead"))))
+
+      `(qmeth ~klass-sym ~method-sym))))
+
+(defn- ctor?
+  "Does a symbol look like a constructor form?"
+  [sym]
+  (let [^String nom (and sym (name sym))]
+    (= (.indexOf nom (int \.)) (dec (.length nom)))))
+
 (defn- overloads
   "Returns a seq of the overides for a given method in clojure.reflect/reflect structs."
   [details method-sym]
   (->> details :members (filter (comp #{method-sym} :name))))
 
-(defn qmeth
+(defmacro qmeth
   "Reads a reader form for a qualified method or constructor and emits a structure
   for a function that calls down to the given class member. The following forms
   result in the corresponding functions:
@@ -68,28 +75,22 @@
   - private methods
   - multiple overloads
   - class not resolved"
-  [^PushbackReader rdr dot opts pending]
-  (let [form (LispReader/read rdr true nil false opts)]
-    (when (not (symbol? form))
-      (throw (RuntimeException. "expecting a symbol for reader form #.")))
-    (let [[klass-sym method-sym] (split-symbol form)]
-      (when (not (and klass-sym method-sym))
-        (throw (RuntimeException. (str "expecting a qualified symbol for reader form #. got #." form " instead"))))
-
-      (let [klass   (resolve klass-sym)
-            details (ref/reflect klass)
-            ovr     (overloads details method-sym) ;; what to do if there are more than one?
-            static? (contains? (-> ovr first :flags) :static)
-            target  (first ovr)
-            params  (map #(do % (gensym)) (:parameter-types target))
-            params  (vec (if static? params (cons (gensym) params)))]
-        ;; TODO: check for private
-        ;; TODO: ctor of more than 1-arg?
-        ;; not seeing reflection warnings?
-        (cond static?            `(fn ~params (~form ~@params))
-              (ctor? method-sym) (let [p [(gensym)]] `(fn ~p (new ~klass ~@p)))
-              :default           `(fn ~(vec (cons (with-meta (first params) {:tag klass-sym}) (rest params)))
-                                    (. ~(first params) ~method-sym ~@(rest params))))))))
+  [klass-sym method-sym]
+  (let [form    (symbol (name klass-sym) (name method-sym))
+        klass   (resolve klass-sym)
+        details (ref/reflect klass)
+        ovr     (overloads details method-sym) ;; what to do if there are more than one?
+        static? (contains? (-> ovr first :flags) :static)
+        target  (first ovr)
+        params  (map #(do % (gensym)) (:parameter-types target))
+        params  (vec (if static? params (cons (gensym) params)))]
+    ;; TODO: check for private
+    ;; TODO: ctor of more than 1-arg?
+    ;; not seeing reflection warnings?
+    (cond static?            `(fn ~params (~form ~@params))
+          (ctor? method-sym) (let [p [(gensym)]] `(fn ~p (new ~klass ~@p)))
+          :default           `(fn ~(vec (cons (with-meta (first params) {:tag klass-sym}) (rest params)))
+                                (. ~(first params) ~method-sym ~@(rest params))))))
 
 (comment
   (attach-qmethod-reader! qmethod-rdr)
@@ -101,6 +102,8 @@
   (read-string "#.Math/abs")
   (read-string "#.String/toUpperCase")
   (read-string "#.String.")
+
+  (macroexpand-1 '(qmeth Math abs))
 
   (map #.Math/abs [-1 2])  ;; reflect, type overloads
   (map #.Math/acos [0.2 0.1]) ;; no reflect, no overloads, single arity
@@ -121,4 +124,34 @@
 
     (let [n -1]
       (#.Math/abs n))
+
+    (import '(java.lang.invoke MethodHandles
+                              MethodHandles$Lookup
+                              MethodType
+                              MethodHandle))
+
+    (def ^MethodType meth-type (MethodType/methodType Long/TYPE Long/TYPE))
+    
+    (def ^MethodHandle abs-handle (.findStatic (MethodHandles/lookup) 
+                                               Math 
+                                               "abs" 
+                                               meth-type))
+
+    (class -42)
+    
+    (.invokeWithArguments abs-handle (object-array [-42]))
+    (.invokeWithArguments abs-handle (object-array [-42.12]))
+
+    (filter (fn [x] (.. x getName (equals "abs")))
+            (.getDeclaredMethods Math))
+
+    (.getDeclaredMethods Math)
+
+    (defn f ^long [^long n] (long (Math/abs n)))
+
+    (f 42)
+
+    clojure.lang.IFn$LO
+    
+    (.invokePrim ^clojure.lang.IFn$LL f 42)
 )
