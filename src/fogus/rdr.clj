@@ -24,6 +24,12 @@
 
 (declare qmeth)
 
+(defn- ctor?
+  "Does a symbol look like a constructor form?"
+  [sym]
+  (let [^String nom (and sym (name sym))]
+    (= (.indexOf nom (int \.)) (dec (.length nom)))))
+
 (defn- split-symbol
   "Splits a symbol of the form Class/method into two symbols, one for each part in a pair vector.
   For a constructor form the method symbol remains as 'Class.'"
@@ -46,12 +52,6 @@
         (throw (RuntimeException. (str "expecting a qualified symbol for reader form #. got #." form " instead"))))
 
       `(qmeth ~klass-sym ~method-sym))))
-
-(defn- ctor?
-  "Does a symbol look like a constructor form?"
-  [sym]
-  (let [^String nom (and sym (name sym))]
-    (= (.indexOf nom (int \.)) (dec (.length nom)))))
 
 (defn- overloads
   "Returns a seq of the overides for a given method in clojure.reflect/reflect structs."
@@ -98,6 +98,7 @@
   (import 'java.util.Collections)
   (import 'java.util.Date)
   (import 'java.sql.Time)
+  (import 'java.sql.Timestamp)
   
   (read-string "#.Math/abs")
   (read-string "#.String/toUpperCase")
@@ -117,41 +118,216 @@
   (defn f [n]
     (#.Date. ^long n))
 
-    (defn f [^long n]
-      ((fn [^long x] (Date. x)) n))
+  (defn f [^long n]
+    ((fn [^long x] (Date. x)) n))
   
-    (map (fn [n] (Math/abs n)) [-1 2])
+  (map (fn [n] (Math/abs n)) [-1 2])
 
-    (let [n -1]
-      (#.Math/abs n))
+  (let [n -1]
+    (#.Math/abs n))
 
-    (import '(java.lang.invoke MethodHandles
-                              MethodHandles$Lookup
-                              MethodType
-                              MethodHandle))
+  (import '(java.lang.invoke MethodHandles
+                             MethodHandles$Lookup
+                             MethodType
+                             MethodHandle))
 
-    (def ^MethodType meth-type (MethodType/methodType Long/TYPE Long/TYPE))
-    
-    (def ^MethodHandle abs-handle (.findStatic (MethodHandles/lookup) 
-                                               Math 
-                                               "abs" 
-                                               meth-type))
+  (def ^MethodType meth-type (MethodType/methodType Long/TYPE Long/TYPE))
+  
+  (def ^MethodHandle abs-handle (.findStatic (MethodHandles/lookup) 
+                                             Math 
+                                             "abs" 
+                                             meth-type))
 
-    (class -42)
-    
-    (.invokeWithArguments abs-handle (object-array [-42]))
-    (.invokeWithArguments abs-handle (object-array [-42.12]))
+  (class -42)
+  
+  (.invokeWithArguments abs-handle (object-array [-42]))
+  (.invokeWithArguments abs-handle (object-array [-42.12]))
 
-    (filter (fn [x] (.. x getName (equals "abs")))
-            (.getDeclaredMethods Math))
+  (filter (fn [x] (.. x getName (equals "abs")))
+          (.getDeclaredMethods Math))
 
-    (.getDeclaredMethods Math)
+  (.getDeclaredMethods Math)
 
-    (defn f ^long [^long n] (long (Math/abs n)))
+  (defn f ^long [^long n] (long (Math/abs n)))
 
-    (f 42)
+  (f 42)
 
-    clojure.lang.IFn$LO
-    
-    (.invokePrim ^clojure.lang.IFn$LL f 42)
+  clojure.lang.IFn$LO
+  
+  (.invokePrim ^clojure.lang.IFn$LL f 42)
+)
+
+
+(defn- build-method-descriptor
+  [klass-sym method-sym]
+  (let [form    (symbol (name klass-sym) (name method-sym))
+        klass   (resolve klass-sym)
+        details (ref/reflect klass)
+        ovr     (overloads details method-sym) ;; what to do if there are more than one?
+        static? (contains? (-> ovr first :flags) :static)
+        overloads (map (fn [m]
+                         (let [params (:parameter-types m)]
+                           {:ret  (:return-type m)
+                            :sig  params}))
+                       ovr)
+        arities (into (sorted-map) (group-by (comp count :sig) overloads))]
+    {:static?    static?
+     :class-sym  klass-sym
+     :method-sym method-sym
+     :klass      klass
+     :arities    arities}))
+
+(def ttable '{long Long
+              int  Integer
+              float Float
+              double Double})
+
+(defn- prim? [sym]
+  (contains? ttable sym))
+
+(declare build-dispatch)
+
+(defn- build-branch [static? target {:keys [ret sig]} args {:keys [static? class-sym method-sym] :as descr}]
+  (if (next sig)
+    (build-dispatch static?
+                    target
+                    [{:ret ret :sig (rest sig)}]
+                    (rest args))
+    [(list instance? (get ttable (first sig)) (first args))
+     (list (symbol (name class-sym) (name method-sym))
+           (list (first sig) (first args)))]))
+
+(defn- build-dispatch [static? target sigs arglist {:keys [static?] :as descr}]
+  `(cond ~@(mapcat (fn [sig]
+                     (build-branch static? target sig arglist descr))
+                   sigs)))
+
+(defn- build-body [arity sigs {:keys [static? klass] :as descr}]
+  (let [arglist (repeatedly arity gensym)
+        target  (when (not static?) (with-meta (gensym "self") {:tag klass}))]
+    `(~(vec (if static? arglist (cons target arglist)))
+      ~(build-dispatch static? target sigs arglist descr))))
+
+(defn- build-method-fn
+  [{:keys [static? class-sym method-sym klass arities] :as descr}]
+  `(fn ~(gensym (name method-sym))
+     ~@(map (fn [[arity sigs]]
+              (build-body arity sigs descr))
+            arities)))
+
+(defmacro make-fn [class-sym method-sym]
+  (let [descr (build-method-descriptor class-sym method-sym)]
+    `(let []
+       ~(build-method-fn descr))))
+
+(comment
+  (build-method-fn (build-method-descriptor 'Collections 'max))
+
+  (map (make-fn Math abs)
+       [-1 -1.2 (int -3) (float -4.1)])
+  
+  (build-body 1 (:static? -abs) '[[int   int] [float float] [long long] [double double]])
+  
+  (build-method-descriptor 'Math 'abs)
+  (build-method-descriptor 'Collections 'max)
+  (build-method-descriptor 'String 'toUpperCase)
+  (build-method-descriptor 'Math 'nextAfter)
+  (build-method-descriptor 'String 'format)  ;; varargs
+  (build-method-descriptor 'Timestamp 'compareTo)
+
+
+  (build-arglist true  '[float])
+  (build-arglist false '[java.util.Locale])
+
+  Math/abs ()
+  
+  (build-bodies   (build-method-descriptor 'Math 'abs))
+  (build-bodies   (build-method-descriptor 'Collections 'max))
+  (build-bodies   (build-method-descriptor 'String 'toUpperCase))
+
+  ((fn [ts o]
+     (cond 
+       (instance? Date o) (.compareTo ^Timestamp ts ^Date o)
+       (instance? Timestamp o) (.compareTo ^Timestamp ts ^Timestamp o)
+       :default (throw (IllegalArgumentException. (str "invalid argument type to Timestamp/compareTo: " (type o))))))
+   (Timestamp. 42227)
+   (Timestamp. 42226))
+
+  (map (fn [n]
+         (cond
+           (instance? Long n)    (Math/abs (long n))
+           (instance? Double n)  (Math/abs (double n))    
+           (instance? Integer n) (Math/abs (int n))
+           (instance? Float n)   (Math/abs (float n))
+           :default (throw (IllegalArgumentException. (str "invalid argument type to Math/abs: " (type n))))))
+       [-1 -2.1 (int -4)])
+
+    (map (fn [n]
+         (cond
+           (instance? Long n)    (Math/abs (long n))
+           (instance? Double n)  (Math/abs (double n))    
+           (instance? Integer n) (Math/abs (int n))
+           (instance? Float n)   (Math/abs (float n))
+           :default (throw (IllegalArgumentException. (str "invalid argument type to Math/abs: " (type n))))))
+       [-1 -2.1 (int -4) "a"])
+
+  ((fn
+     ([coll]
+      (Collections/max coll))
+     ([coll cmp]
+      (Collections/max coll cmp)))
+   [1 2 3 2 5 4 7 3 1 2 -3])
+
+  ((fn
+     ([coll]
+      (Collections/max coll))
+     ([coll cmp]
+      (Collections/max coll cmp)))
+     [1 2 3 2 5 4 7 3 1 2 -3]
+   >)
+
+  ((fn
+     ([self] (. ^String self toUpperCase))
+     ([self loc] (. ^String self toUpperCase loc)))
+   "abc")
+
+  ((fn
+     ([self] (. ^String self toUpperCase))
+     ([self loc] (. ^String self toUpperCase loc)))
+   "abc"
+   java.util.Locale/US)
+
+  ((fn [x y]
+     (cond 
+       (instance? Double x) (cond
+                              (instance? Double y) (Math/nextAfter (double x) (double y))
+                              :default (throw (IllegalArgumentException. (str "invalid argument type to Math/nextAfter: " (type y)))))
+       (instance? Float x) (cond
+                             (instance? Double y) (Math/nextAfter (float x) (double y))
+                             :default (throw (IllegalArgumentException. (str "invalid argument type to Math/nextAfter: " (type y)))))
+       :default (throw (IllegalArgumentException. (str "invalid argument type to Math/nextAfter: " (type x))))))
+   (float 1.2) 0.1)
+
+    ((fn [x y]
+     (cond 
+       (instance? Double x) (cond
+                              (instance? Double y) (Math/nextAfter (double x) (double y))
+                              :default (throw (IllegalArgumentException. (str "invalid argument type to Math/nextAfter: " (type y)))))
+       (instance? Float x) (cond
+                             (instance? Double y) (Math/nextAfter (float x) (double y))
+                             :default (throw (IllegalArgumentException. (str "invalid argument type to Math/nextAfter: " (type y)))))
+       :default (throw (IllegalArgumentException. (str "invalid argument type to Math/nextAfter: " (type x))))))
+     1 0.1)
+
+    ;;(Math/nextAfter 1.2 1)
+
+    ((fn 
+       ([s more] (String/format s (to-array more)))
+       ([l s more] (String/format l s (to-array more))))
+     "%d -- %d" [1 2])
+
+    ((fn 
+       ([s more] (String/format s (to-array more)))
+       ([l s more] (String/format l s (to-array more))))
+     "%d -- %d" (to-array [1 2]))
 )
