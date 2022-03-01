@@ -187,6 +187,9 @@
 
 (declare build-dispatch)
 
+(defn- methodize [c m]
+  (symbol (name c) (name m)))
+
 (defn- build-branch [static? target {:keys [ret sig]} args {:keys [static? class-sym method-sym] :as descr}]
   (if (next sig)
     (build-dispatch static?
@@ -194,19 +197,24 @@
                     [{:ret ret :sig (rest sig)}]
                     (rest args))
     [(list instance? (get ttable (first sig)) (first args))
-     (list (symbol (name class-sym) (name method-sym))
+     (list (methodize class-sym method-sym)
            (list (first sig) (first args)))]))
 
-(defn- build-dispatch [static? target sigs arglist {:keys [static?] :as descr}]
+(defn- build-conditional-dispatch [target sigs arglist {:keys [static?] :as descr}]
   `(cond ~@(mapcat (fn [sig]
                      (build-branch static? target sig arglist descr))
                    sigs)))
+
+(defn- build-simple-dispatch [target sigs arglist {:keys [static? class-sym method-sym] :as descr}]
+  `(. ~class-sym ~method-sym ~@arglist))
 
 (defn- build-body [arity sigs {:keys [static? klass] :as descr}]
   (let [arglist (repeatedly arity gensym)
         target  (when (not static?) (with-meta (gensym "self") {:tag klass}))]
     `(~(vec (if static? arglist (cons target arglist)))
-      ~(build-dispatch static? target sigs arglist descr))))
+      ~(if (< 1 (count sigs))
+         (build-conditional-dispatch target sigs arglist descr)
+         (build-simple-dispatch target sigs arglist descr)))))
 
 (defn- build-method-fn
   [{:keys [static? class-sym method-sym klass arities] :as descr}]
@@ -223,10 +231,14 @@
 (comment
   (build-method-fn (build-method-descriptor 'Collections 'max))
 
-  (map (make-fn Math abs)
-       [-1 -1.2 (int -3) (float -4.1)])
+  (map (make-fn Math abs) [-1 -1.2 (int -3) (float -4.1)])
+
+  (map (make-fn Collections max) [[1 2 3] [4 5 6] [7 8 9]])
+  ((make-fn Collections max) [1 2 3] >)
   
   (build-body 1 (:static? -abs) '[[int   int] [float float] [long long] [double double]])
+
+  (. Collections max [1 2 3])
   
   (build-method-descriptor 'Math 'abs)
   (build-method-descriptor 'Collections 'max)
