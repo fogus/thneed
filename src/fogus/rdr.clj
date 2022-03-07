@@ -102,6 +102,11 @@
               (build-body arity sigs static? class-sym method-sym))
             arities)))
 
+(defn- overloads
+  "Returns a seq of the overides for a given method in clojure.reflect/reflect structs."
+  [details method-sym]
+  (->> details :members (filter (comp #{method-sym} :name))))
+
 (defn- build-method-descriptor
   [klass-sym method-sym]
   (let [form    (symbol (name klass-sym) (name method-sym))
