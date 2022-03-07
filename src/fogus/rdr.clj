@@ -157,7 +157,6 @@
   (.invokePrim ^clojure.lang.IFn$LL f 42)
 )
 
-
 (defn- build-method-descriptor
   [klass-sym method-sym]
   (let [form    (symbol (name klass-sym) (name method-sym))
@@ -191,26 +190,35 @@
   (symbol (name c) (name m)))
 
 (defn- build-branch [static? target {:keys [ret sig]} args {:keys [static? class-sym method-sym] :as descr}]
-  (if (next sig)
-    (build-dispatch static?
-                    target
-                    [{:ret ret :sig (rest sig)}]
-                    (rest args))
-    [(list instance? (get ttable (first sig)) (first args))
-     (list (methodize class-sym method-sym)
-           (list (first sig) (first args)))]))
+  [(list instance? (get ttable (first sig)) (first args))
+   (if (next sig)
+     (build-conditional-dispatch target
+                                 [{:ret ret :sig (rest sig)}]
+                                 (rest args)
+                                 descr)
+     (if static?
+       `(. ~class-sym ~method-sym ~@(map #(list %1 %2) sig args))   ;; TODO: this is not general
+       `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@args) ;; TODO: this is not general)
+       ))])
 
 (defn- build-conditional-dispatch [target sigs arglist {:keys [static?] :as descr}]
   `(cond ~@(mapcat (fn [sig]
-                     (build-branch static? target sig arglist descr))
+                     (build-branch static?
+                                   target
+                                   sig
+                                   arglist
+                                   descr))
                    sigs)))
 
 (defn- build-simple-dispatch [target sigs arglist {:keys [static? class-sym method-sym] :as descr}]
-  `(. ~class-sym ~method-sym ~@arglist))
+  (if static?
+    `(. ~class-sym ~method-sym ~@arglist)
+    `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@arglist)))
 
-(defn- build-body [arity sigs {:keys [static? klass] :as descr}]
-  (let [arglist (repeatedly arity gensym)
-        target  (when (not static?) (with-meta (gensym "self") {:tag klass}))]
+(defn- build-body [arity sigs {:keys [static? class-sym] :as descr}]
+  (let [arglist  (repeatedly arity gensym)
+        target   (when (not static?) (with-meta (gensym "self") {:tag class-sym}))
+        callsite nil]
     `(~(vec (if static? arglist (cons target arglist)))
       ~(if (< 1 (count sigs))
          (build-conditional-dispatch target sigs arglist descr)
@@ -229,22 +237,22 @@
        ~(build-method-fn descr))))
 
 (comment
-  (build-method-fn (build-method-descriptor 'Collections 'max))
+  (build-method-fn (build-method-descriptor 'Math 'nextAfter))
 
+  (map (make-fn String toUpperCase) ["a" "bc"])
+  
   (map (make-fn Math abs) [-1 -1.2 (int -3) (float -4.1)])
 
   (map (make-fn Collections max) [[1 2 3] [4 5 6] [7 8 9]])
   ((make-fn Collections max) [1 2 3] >)
-  
-  (build-body 1 (:static? -abs) '[[int   int] [float float] [long long] [double double]])
 
-  (. Collections max [1 2 3])
+  ((make-fn Math nextAfter) 0.1 0.1)
   
   (build-method-descriptor 'Math 'abs)
   (build-method-descriptor 'Collections 'max)
   (build-method-descriptor 'String 'toUpperCase)
   (build-method-descriptor 'Math 'nextAfter)
-  (build-method-descriptor 'String 'format)  ;; varargs
+  (build-method-descriptor 'String 'format)
   (build-method-descriptor 'Timestamp 'compareTo)
 
 
@@ -342,4 +350,111 @@
        ([s more] (String/format s (to-array more)))
        ([l s more] (String/format l s (to-array more))))
      "%d -- %d" (to-array [1 2]))
+)
+
+(def coercions
+  '{int int
+    float float
+    long long
+    double double})
+
+(defn- build-resolutions [types args]
+  (map (fn [t a]
+         (let [coercer (get coercions t)]
+           (if coercer
+             (list coercer a)
+             (with-meta a {:tag t}))))
+       types
+       args))
+
+(defn build-callsite [target class-sym method-sym types args]
+  (if target
+    `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@(build-resolutions types args))
+    `(. ~class-sym ~method-sym ~@(build-resolutions types args))))
+
+#_(defn- build-conditional-dispatch [target class-sym method-sym sigs args]
+  (let [calls (map #(build-callsite target class-sym method-sym % args) sigs)]
+    (loop [disp               '[cond]
+           [[params] & sigs]  sigs
+           [[arg & args]]     args]
+      (if (seq params) ;; build branches
+        (let [branch (conj disp [:test (first params) (first args)])]
+          (recur branch (rest params) (rest arglist)))
+        (conj disp :TAIL)))))
+
+(comment
+  (build-conditional-dispatch nil 'Math 'abs '[[long] [double] [int] [float]] '[n])
+
+  
+  (build-callsite 'self 'String 'toUpperCase '[java.util.Locale] '[loc])
+  (build-callsite nil 'Math 'abs '[int] '[n])
+
+
+  (loop [disp '[cond]
+                        sigs sigs]
+                   (if (next sigs)
+                     (loop [types (first sigs)
+                            args  args
+                            disp  disp]
+                       (if (next types)
+                         (conj (conj [:test (first arg)] disp)
+                               (recur (rest types)
+                                      (rest args)
+                                      '[cond]))
+                         (conj [:call])))
+                     
+                     (recur ...)))
+)
+
+
+(comment
+
+  (def ttree {:T1 {:T2 {}
+                   :T3 {}}
+              :T2 {:T3 {}}})
+
+  (def sigs [[:T1 :T2] [:T1 :T3] [:T2 :T3]])
+  (def sigs2 [[:T1 :T2] [:T1 :T3] [:T32 :T33]])
+  (def sigs3 [[:T11 :T12 :T13] [:T21 :T23 :T24] [:T32 :T33 :T31]])
+  (def sigs4 '[[a1 a2 a3] [b1 b2 b3] [c1 c2 b3]])
+
+  (defn- build-sigs-tree [sigs]
+    )
+
+  (build-sigs-tree sigs)
+
+  (build-dispatch-tree '[[int] [float] [double] [long]] '[n])
+  (build-dispatch-tree '[[float double] [double double] [float int]] '[x y])
+  (build-dispatch-tree '[[float double double] [double double double] [float int double]]  '[x y z])
+
+  (def dt1 '{(int n) {}, (float n) {}, (double n) {}, (long n) {}})
+  (def dt2 '{(float x)  {(double y) {}, (int y) {}},
+             (double x) {(double y) {}}})
+
+  (defn build-dispatch-table [tree]
+    (when tree
+      `(cond
+         ~@(mapcat (fn [[param subtree]]
+                     (let [[t p] param]
+                       [(list t p)
+                        (if (seq subtree)
+                          (build-dispatch-table subtree)
+                          (list '. p '...))]))
+                   (seq tree))
+         :default :THROWS)))
+
+  (build-dispatch-table
+   (build-dispatch-tree '[[int] [float] [double] [long]] '[n]))
+
+  (build-dispatch-table
+   (build-dispatch-tree '[[float double] [double double] [float int]] '[x y]))
+  
+  (build-dispatch-table
+   (build-dispatch-tree '[[float double double] [double double double] [float int double]]  '[x y z]))
+
+  (build-dispatch-table
+   (build-dispatch-tree '[[java.util.Collection java.util.Comparator]]  '[coll com]))
+
+  (build-dispatch-table
+   (build-dispatch-tree '[]  '[]))
 )
