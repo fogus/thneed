@@ -1,0 +1,69 @@
+;; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with C-x C-f and enter text in its buffer.
+
+;; Math/abs [[int] [long] [float] [double]]
+
+(clojure.core/fn abs11949
+  ([G__11950]
+   (clojure.core/cond
+     (clojure.core/instance? Float G__11950) (. Math abs (float G__11950))
+     (clojure.core/instance? Long G__11950) (. Math abs (long G__11950))
+     (clojure.core/instance? Integer G__11950) (. Math abs (int G__11950))
+     (clojure.core/instance? Double G__11950) (. Math abs (double G__11950))
+     :default (throw (IllegalArgumentException.
+                      (str "invalid argument type to Math/abs: " G__11950))))))
+
+;; String#toUppercase
+
+(clojure.core/fn toUpperCase11987
+  ([self11988]
+   (. self11988 toUpperCase))
+  ([self11989 G__11990] (. self11989 toUpperCase G__11990)))
+
+
+;; Collections/max
+
+(clojure.core/fn max12045
+  ([G__12046] (. Collections max G__12046))
+  ([G__12047 G__12048] (. Collections max G__12047 G__12048)))
+
+
+;; Math/nextAfter
+
+(clojure.core/fn nextAfter12058
+  ([G__12059 G__12060]
+   (clojure.core/cond (clojure.core/instance? Float G__12059)
+                      (clojure.core/cond (clojure.core/instance? Double G__12060)
+                                         (. Math nextAfter
+                                            (float G__12059)
+                                            (double G__12060))
+                                         :default (throw (IllegalArgumentException.
+                                                          (str "invalid argument type to Math/nextAfter: " G__12060))))
+                      (clojure.core/instance? Double G__12059)
+                      (clojure.core/cond (clojure.core/instance? Double G__12060)
+                                         (. Math nextAfter
+                                            (double G__12059)
+                                            (double G__12060))
+                                         :default (throw (IllegalArgumentException.
+                                                          (str "invalid argument type to Math/nextAfter: " G__12060))))
+                      :default (throw (IllegalArgumentException.
+                                       (str "invalid argument type to Math/nextAfter: " G__12059))))))
+
+;; Timestamp#compareTo
+
+(clojure.core/fn compareTo12075
+  ([self12076 G__12077]
+   (clojure.core/cond (clojure.core/instance? java.util.Date G__12077) (. self12076 compareTo G__12077)
+                      (clojure.core/instance? java.sql.Timestamp G__12077) (. self12076 compareTo G__12077)
+                      (clojure.core/instance? java.lang.Object G__12077) (. self12076 compareTo G__12077)  ;; bottoming-out at Object... 
+                      :default (throw (IllegalArgumentException. (str "invalid argument type to Timestamp/compareTo: " G__12077))))))
+
+
+;; String/format
+
+(clojure.core/fn format12080
+  ([G__12081 G__12082]
+   (. String format G__12081 G__12082))
+  ([G__12083 G__12084 G__12085]
+   (. String format G__12083 G__12084 G__12085)))  ;; final arg in place of vararg, needs to-array call?
+
