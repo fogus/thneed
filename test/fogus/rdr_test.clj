@@ -22,3 +22,7 @@
   (is (= ["A" "BC"]
          (map (rdr/make-fn String toUpperCase) ["a" "bc"])))
   )
+
+(deftest varargs
+  (is (= "we are 138"
+         ((rdr/make-fn String format) "we are %d" (to-array [(int 138)])))))
