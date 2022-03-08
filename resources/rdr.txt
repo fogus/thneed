@@ -1,7 +1,9 @@
-;; This buffer is for text that is not saved, and for Lisp evaluation.
-;; To create a file, visit it with C-x C-f and enter text in its buffer.
+;; qualified method expansions from `make-fn`
+;; https://github.com/fogus/thneed/blob/master/src/fogus/rdr.clj
 
-;; Math/abs [[int] [long] [float] [double]]
+
+;; METHOD: Math/abs
+;; SIGS:   [[int] [long] [float] [double]]
 
 (clojure.core/fn abs11949
   ([G__11950]
@@ -13,7 +15,10 @@
      :default (throw (IllegalArgumentException.
                       (str "invalid argument type to Math/abs: " G__11950))))))
 
-;; String#toUppercase
+
+;; METHOD: String#toUppercase
+;; SIGS:   [[] [java.util.Locale]]
+;; NOTE:   No arity nor type overloads
 
 (clojure.core/fn toUpperCase11987
   ([self11988]
@@ -21,14 +26,19 @@
   ([self11989 G__11990] (. self11989 toUpperCase G__11990)))
 
 
-;; Collections/max
+
+;; METHOD: Collections/max
+;; SIGS:   [[java.util.Collection] [java.util.Collection java.util.Comparator]]
+;; NOTE:   No arity nor type overloads
 
 (clojure.core/fn max12045
   ([G__12046] (. Collections max G__12046))
   ([G__12047 G__12048] (. Collections max G__12047 G__12048)))
 
 
-;; Math/nextAfter
+
+;; METHOD: Math/nextAfter
+;; SIGS:   [[float double] [double double]]
 
 (clojure.core/fn nextAfter12058
   ([G__12059 G__12060]
@@ -49,7 +59,10 @@
                       :default (throw (IllegalArgumentException.
                                        (str "invalid argument type to Math/nextAfter: " G__12059))))))
 
-;; Timestamp#compareTo
+
+;; METHOD: Timestamp#compareTo
+;; SIGS:   [[java.util.Date] [java.sql.Timestamp] [java.lang.Object]]
+;; NOTE:   Object argument resides in base. What to do here?
 
 (clojure.core/fn compareTo12075
   ([self12076 G__12077]
@@ -59,7 +72,10 @@
                       :default (throw (IllegalArgumentException. (str "invalid argument type to Timestamp/compareTo: " G__12077))))))
 
 
-;; String/format
+
+;; METHOD: String/format
+;; SIGS:   [[java.lang.String java.lang.Object<>] [java.util.Locale java.lang.String java.lang.Object<>]]
+;; NOTE:   varargs currently handled as array in last arg position. Better option?
 
 (clojure.core/fn format12080
   ([G__12081 G__12082]
@@ -68,7 +84,8 @@
    (. String format G__12083 G__12084 G__12085)))  ;; final arg in place of vararg, needs to-array call?
 
 
-;; Date.
+;; CTOR: Date
+;; SIGS: [[] [long] [java.lang.String] [int int int] [int int int int int] [int int int int int int]]
 
 (clojure.core/fn java.util.Date7227
   ([] (new java.util.Date))
