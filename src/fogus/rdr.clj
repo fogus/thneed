@@ -4,10 +4,10 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-;; TODO: sort types long, double, int, float
 ;; TODO: last branch is coerce which then fails if wrong types
 ;; TODO: varargs as?
 ;; TODO: primitive arrays
+;; TODO: hint return of constructor functions?
 ;; TODO: cache
 
 (set! *warn-on-reflection* true)
@@ -74,8 +74,8 @@
              float 4})
 
 (defn- tcompare [[t1 _] [t2 _]]
-  (compare (get ranks t1)
-           (get ranks t2)))
+  (compare (get ranks t1 0)
+           (get ranks t2 1)))
 
 (defn- build-dispatch-tree
   [sigs args]
@@ -116,21 +116,21 @@
   [tree type-stack args target class-sym method-sym]
   (when tree
     `(cond
-       ~@(mapcat (fn [[param subtree]]
-                   (let [[t p] param
-                         ts (conj type-stack t)]
-                     [(list `instance? (get ttable t t) p)
-                      (if (seq subtree)
-                        (build-conditional-dispatch subtree
-                                                    ts
-                                                    args
-                                                    target
-                                                    class-sym
-                                                    method-sym)
-                        (build-callsite ts args target class-sym method-sym))]))
-                 (seq tree))
-       :default ~(list `throw (list 'IllegalArgumentException.
-                                    (list 'str (str "invalid argument type to " class-sym "/" method-sym ": ") (second (ffirst tree))))))))
+       ~@(let [branches (map (fn [[param subtree]]
+                               (let [[t p] param
+                                     ts (conj type-stack t)]
+                                 [(list `instance? (get ttable t t) p)
+                                  (if (seq subtree)
+                                    (build-conditional-dispatch subtree
+                                                                ts
+                                                                args
+                                                                target
+                                                                class-sym
+                                                                method-sym)
+                                    (build-callsite ts args target class-sym method-sym))]))
+                             (seq tree))
+               default-branch (->> branches last second (vector :default))]
+           (apply concat (conj (vec (butlast branches)) default-branch))))))
 
 (defn- build-simple-dispatch [args target class-sym method-sym]
   (cond (ctor? class-sym method-sym) `(new ~class-sym ~@args)
@@ -190,7 +190,7 @@
   ;;#.String/toUpperCase
   
   (def _abs (make-fn java.lang.Math abs))
-  (_abs -1)
+  (_abs "a")
   
   (map (make-fn java.lang.Math abs) [-1 -1.2 (int -3) (float -4.25)])
   (map _abs [-1 -1.2 (int -3) (float -4.25)])
@@ -210,10 +210,9 @@
   (build-method-fn (build-method-descriptor 'java.util.Collections 'max))
   (build-method-fn (build-method-descriptor 'java.sql.Timestamp 'compareTo))
   (build-method-fn (build-method-descriptor 'java.lang.String 'format))
-  (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date)) ;; TODO
+  (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date))
+  ;;(build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String))
 
-  (new java.util.Date 75 12 2)
-  
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)
   
   (build-simple-dispatch '[] 'self 'String 'toUpperCase)
@@ -250,10 +249,5 @@
 
   (build-conditional-dispatch
    (build-dispatch-tree '[]  '[]))
- 
-  (def sm (sorted-map-by tcompare))
-  
-  (assoc sm 'int {} 'long {} 'float {} 'double {} nil {})
 
-  (tcompare nil 'int)
 )
