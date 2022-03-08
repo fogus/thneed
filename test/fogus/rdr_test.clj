@@ -1,7 +1,10 @@
 (ns fogus.rdr-test
   (:require [clojure.test :refer :all]
             [fogus.rdr :as rdr])
-  (:import java.util.Collections))
+  (:import java.util.Collections
+           java.util.Locale))
+
+(set! *warn-on-reflection* true)
 
 (deftest static-methods
   (is (= [1 1.2 3 4.25]
@@ -14,6 +17,9 @@
   (is (= [3 6 9]
          (map (rdr/make-fn Collections max) [[1 2 3] [4 5 6] [7 8 9]])))
 
+  (is (= 1
+         ((rdr/make-fn Collections max) [1 2 3] >)))
+  
   (is (= 0.10000000000000002
          ((rdr/make-fn Math nextAfter) 0.1 1.1)))
   )
@@ -25,4 +31,7 @@
 
 (deftest varargs
   (is (= "we are 138"
-         ((rdr/make-fn String format) "we are %d" (to-array [(int 138)])))))
+         ((rdr/make-fn String format) "we are %d" (to-array [138]))))
+
+  (is (= "we are 138"
+         ((rdr/make-fn String format) Locale/US "we are %d" (to-array [138])))))
