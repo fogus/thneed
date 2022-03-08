@@ -4,11 +4,48 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-;; TODO: ctors
 ;; TODO: varargs as?
+;; TODO: primitive arrays
 ;; TODO: cache
 
 (set! *warn-on-reflection* true)
+
+;; READER STUFF
+
+(declare make-fn)
+
+(defn- ctor?
+  "Does a symbol look like a constructor form?"
+  ([sym]
+   (let [^String nom (and sym (name sym))]
+     (= (.indexOf nom (int \.)) (dec (.length nom)))))
+  ([l r] (= l r)))
+
+(defn- split-symbol
+  "Splits a symbol of the form Class/method into two symbols, one for each part in a pair vector.
+  For a constructor form the method symbol remains as 'Class.'"
+  [sym]
+  (let [[klass method] ((juxt namespace name) sym)
+        klass (if (ctor? method) (->> method name seq butlast (string/join "") symbol) (symbol klass))
+        ^java.lang.Class resolved-class  (-> klass resolve)
+        klass (-> resolved-class .getName symbol)
+        method (if (ctor? method) klass method)]
+    [(when klass  (symbol klass))
+     (when method (symbol method))]))
+
+(defn qmethod-rdr
+  "Passthrough to the read handler for the qualified method handler. Calls through
+  the Var for development purposes."
+  [rdr dot opts pending]
+    (let [form (LispReader/read rdr true nil false opts)]
+    (when (not (symbol? form))
+      (throw (RuntimeException. "expecting a symbol for reader form #.")))
+    (let [[klass-sym method-sym] (split-symbol form)]
+      (when (not (and klass-sym method-sym))
+        (throw (RuntimeException. (str "expecting a qualified symbol for reader form #. got #." form " instead"))))
+      `(make-fn ~klass-sym ~method-sym))))
+
+;; REFLECTION STUFF
 
 (defn get-field
   "Access to private or protected field.  field-name is a symbol or
@@ -28,7 +65,6 @@
     (aset slot
           (int \.)
           rdr)))
-
 
 (defn- build-dispatch-tree
   [sigs args]
@@ -55,10 +91,10 @@
        types
        args))
 
-(defn build-callsite [target class-sym method-sym types args]
-  (if target
-    `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@(build-resolutions types args))
-    `(. ~class-sym ~method-sym ~@(build-resolutions types args))))
+(defn build-callsite [types args target class-sym method-sym]
+  (cond (ctor? class-sym method-sym) `(new ~class-sym ~@(build-resolutions types args))
+        target `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@(build-resolutions types args))
+        :default `(. ~class-sym ~method-sym ~@(build-resolutions types args))))
 
 (def ttable '{long Long
               int  Integer
@@ -80,15 +116,15 @@
                                                     target
                                                     class-sym
                                                     method-sym)
-                        (build-callsite target class-sym method-sym ts args))]))
+                        (build-callsite ts args target class-sym method-sym))]))
                  (seq tree))
        :default ~(list `throw (list 'IllegalArgumentException.
                                     (list 'str (str "invalid argument type to " class-sym "/" method-sym ": ") (second (ffirst tree))))))))
 
 (defn- build-simple-dispatch [args target class-sym method-sym]
-  (if target
-    `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@args)
-    `(. ~class-sym ~method-sym ~@args)))
+  (cond (ctor? class-sym method-sym) `(new ~class-sym ~@args)
+        target `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@args)
+        :default `(. ~class-sym ~method-sym ~@args)))
 
 (defn- build-body [arity sigs static? class-sym method-sym]
   (let [arglist  (repeatedly arity gensym)
@@ -117,7 +153,7 @@
         klass   (resolve klass-sym)
         details (ref/reflect klass)
         ovr     (overloads details method-sym) ;; what to do if there are more than one?
-        static? (contains? (-> ovr first :flags) :static)
+        static? (or (contains? (-> ovr first :flags) :static) (ctor? klass-sym method-sym))
         overloads (map (fn [m]
                          (let [params (:parameter-types m)]
                            (with-meta
@@ -138,24 +174,34 @@
        ~(build-method-fn descr))))
 
 (comment
-  (def _abs (make-fn Math abs))
+  (attach-qmethod-reader! qmethod-rdr)
+
+  ;;#.String/toUpperCase
+  
+  (def _abs (make-fn java.lang.Math abs))
   (_abs -1)
   
-  (map (make-fn Math abs) [-1 -1.2 (int -3) (float -4.25)])
+  (map (make-fn java.lang.Math abs) [-1 -1.2 (int -3) (float -4.25)])
   (map _abs [-1 -1.2 (int -3) (float -4.25)])
 
-  (map (make-fn String toUpperCase) ["a" "bc"])
+  (map (make-fn java.lang.String toUpperCase) ["a" "bc"])
 
-  (map (make-fn Collections max) [[1 2 3] [4 5 6] [7 8 9]])
+  (map (make-fn java.util.Collections max) [[1 2 3] [4 5 6] [7 8 9]])
 
-  ((make-fn Math nextAfter) 0.1 1.1)
+  ((make-fn java.lang.Math nextAfter) 0.1 1.1)
+  ((make-fn java.util.Date java.util.Date) (int 1))
+
+  (import 'java.util.Date)
   
-  (build-method-fn (build-method-descriptor 'Math 'abs))
-  (build-method-fn (build-method-descriptor 'Math 'nextAfter))
-  (build-method-fn (build-method-descriptor 'String 'toUpperCase))
-  (build-method-fn (build-method-descriptor 'Collections 'max))
-  (build-method-fn (build-method-descriptor 'Timestamp 'compareTo))
-  (build-method-fn (build-method-descriptor 'String 'format))
+  (build-method-fn (build-method-descriptor 'java.lang.Math 'abs))
+  (build-method-fn (build-method-descriptor 'java.lang.Math 'nextAfter))
+  (build-method-fn (build-method-descriptor 'java.lang.String 'toUpperCase))
+  (build-method-fn (build-method-descriptor 'java.util.Collections 'max))
+  (build-method-fn (build-method-descriptor 'java.sql.Timestamp 'compareTo))
+  (build-method-fn (build-method-descriptor 'java.lang.String 'format))
+  (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date)) ;; TODO
+
+  (new java.util.Date 75 12 2)
   
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)
   

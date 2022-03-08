@@ -67,3 +67,18 @@
   ([G__12083 G__12084 G__12085]
    (. String format G__12083 G__12084 G__12085)))  ;; final arg in place of vararg, needs to-array call?
 
+
+;; Date.
+
+(clojure.core/fn java.util.Date7227
+  ([] (new java.util.Date))
+  ([G__7228]
+   (clojure.core/cond (clojure.core/instance? Long G__7228) (new java.util.Date (long G__7228))
+                      (clojure.core/instance? java.lang.String G__7228) (new java.util.Date G__7228)
+                      :default (throw (IllegalArgumentException. (str "invalid argument type to java.util.Date/java.util.Date: " G__7228)))))
+  ([G__7229 G__7230 G__7231]
+   (new java.util.Date G__7229 G__7230 G__7231))
+  ([G__7232 G__7233 G__7234 G__7235 G__7236]
+   (new java.util.Date G__7232 G__7233 G__7234 G__7235 G__7236))
+  ([G__7237 G__7238 G__7239 G__7240 G__7241 G__7242]
+   (new java.util.Date G__7237 G__7238 G__7239 G__7240 G__7241 G__7242)))
