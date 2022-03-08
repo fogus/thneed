@@ -129,6 +129,7 @@
                                                                 method-sym)
                                     (build-callsite ts args target class-sym method-sym))]))
                              (seq tree))
+               ;; patch up the final branch to be the default case (i.e. last coercion)
                default-branch (->> branches last second (vector :default))]
            (apply concat (conj (vec (butlast branches)) default-branch))))))
 

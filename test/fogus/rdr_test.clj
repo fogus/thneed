@@ -1,7 +1,9 @@
 (ns fogus.rdr-test
   (:require [clojure.test :refer :all]
             [fogus.rdr :as rdr])
-  (:import java.util.Locale))
+  (:import java.util.Locale
+           java.sql.Timestamp
+           java.util.Date))
 
 (set! *warn-on-reflection* true)
 
@@ -22,6 +24,10 @@
   ;; float truncates
   (is (= (float 0.10000001)
          ((rdr/make-fn java.lang.Math nextAfter) (float 0.1) 1.1)))
+
+  (is (thrown-with-msg?
+       Exception #"class clojure.lang.Keyword cannot be cast to class java.lang.Number"
+       ((rdr/make-fn java.lang.Math nextAfter) (float 0.1) :bad-arg)))
   )
 
 (deftest instance-methods
@@ -30,7 +36,10 @@
 
   (is (= ["A" "BC"]
          (map #((rdr/make-fn java.lang.String toUpperCase) % Locale/US) ["a" "bc"])))
-  )
+
+  (testing "methods that bottom out at Object"
+    (is (= 0
+           ((rdr/make-fn java.sql.Timestamp compareTo) (Timestamp. 0) (Timestamp. 0))))))
 
 (deftest varargs
   (is (= "we are 138"
