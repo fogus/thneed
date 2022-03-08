@@ -4,6 +4,10 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
+;; TODO: ctors
+;; TODO: varargs as?
+;; TODO: cache
+
 (set! *warn-on-reflection* true)
 
 (defn get-field
