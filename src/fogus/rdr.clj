@@ -4,6 +4,8 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
+;; TODO: sort types long, double, int, float
+;; TODO: last branch is coerce which then fails if wrong types
 ;; TODO: varargs as?
 ;; TODO: primitive arrays
 ;; TODO: cache
@@ -66,14 +68,23 @@
           (int \.)
           rdr)))
 
+(def ranks '{long 1
+             double 2
+             int 3
+             float 4})
+
+(defn- tcompare [[t1 _] [t2 _]]
+  (compare (get ranks t1)
+           (get ranks t2)))
+
 (defn- build-dispatch-tree
   [sigs args]
   (let [tuples (map #(partition 2 (interleave %1 %2)) sigs (cycle [args]))]
     (apply (fn m [& all] (apply merge-with m all))
            (map (fn ps [sig]
                   (if (seq sig)
-                    (array-map (first sig) (ps (rest sig)))
-                    (array-map)))
+                    (sorted-map-by tcompare (first sig) (ps (rest sig)))
+                    (sorted-map-by tcompare)))
                 tuples))))
 
 (def coercions
@@ -239,5 +250,10 @@
 
   (build-conditional-dispatch
    (build-dispatch-tree '[]  '[]))
+ 
+  (def sm (sorted-map-by tcompare))
+  
+  (assoc sm 'int {} 'long {} 'float {} 'double {} nil {})
 
+  (tcompare nil 'int)
 )
