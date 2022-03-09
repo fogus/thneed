@@ -6,7 +6,6 @@
 
 ;; TODO: varargs as last arg array?
 ;; TODO: class hier sorting
-;; TODO: default methods
 ;; TODO: primitive arrays
 ;; TODO: improve tcompare to better handle unknown cases
 ;; TODO: hint return of constructor functions?
@@ -72,10 +71,10 @@
 ;; TYPES and CHECKS
 
 (defn tpred [t]
-  (fn [x]
-    (if (nil? x)
-      false
-      (-> x class .getComponentType (= t)))))
+  `(fn [x#]
+     (if (nil? x#)
+       false
+       (-> x# class .getComponentType (= ~t)))))
 
 (def types-table
   {'long      {:rank 1  :coercer `long     :checker Long}
@@ -86,13 +85,13 @@
    'boolean   {:rank 6  :coercer `boolean  :checker Boolean}
    'short     {:rank 7  :coercer `short    :checker Short}
    'byte      {:rank 8  :coercer `byte     :checker Byte}
-   'long<>    {:rank 9  :coercer `longs    :checker (tpred Long/TYPE)}
-   'double<>  {:rank 10 :coercer `doubles  :checker (tpred Double/TYPE)}
-   'int<>     {:rank 11 :coercer `ints     :checker (tpred Integer/TYPE)}
-   'float<>   {:rank 12 :coercer `floats   :checker (tpred Float/TYPE)}
-   'char<>    {:rank 13 :coercer `chars    :checker (tpred Character/TYPE)}
-   'boolean<> {:rank 14 :coercer `booleans :checker (tpred Short/TYPE)}
-   'short<>   {:rank 15 :coercer `shorts   :checker (tpred Byte/TYPE)}
+   'long<>    {:rank 9  :coercer `longs    :checker (tpred 'Long/TYPE)}
+   'double<>  {:rank 10 :coercer `doubles  :checker (tpred 'Double/TYPE)}
+   'int<>     {:rank 11 :coercer `ints     :checker (tpred 'Integer/TYPE)}
+   'float<>   {:rank 12 :coercer `floats   :checker (tpred 'Float/TYPE)}
+   'char<>    {:rank 13 :coercer `chars    :checker (tpred 'Character/TYPE)}
+   'boolean<> {:rank 14 :coercer `booleans :checker (tpred 'Short/TYPE)}
+   'short<>   {:rank 15 :coercer `shorts   :checker (tpred 'Byte/TYPE)}
    'byte<>    {:rank 16 :coercer `bytes    :checker bytes?}
    })      
 
@@ -168,7 +167,7 @@
                                (let [[t p] param
                                      ts (conj type-stack t)
                                      checker (get-in types-table [t :checker] t)]
-                                 [(if (fn? checker)
+                                 [(if (seq? checker)
                                     (list checker p)
                                     (list `instance? checker p))
                                   (if (seq subtree)
@@ -302,6 +301,10 @@
   (build-method-fn (build-method-descriptor 'java.util.ArrayList 'forEach))
   (spit "foo.clj" (with-out-str (clojure.pprint/pprint (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String)))))
 
+  (spit "baz.clj" (with-out-str (clojure.pprint/pprint (:members (ref/reflect java.lang.String)))))
+
+  (make-fn java.lang.String java.lang.String)
+  
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)
   
   (build-simple-dispatch '[] 'self 'String 'toUpperCase)
