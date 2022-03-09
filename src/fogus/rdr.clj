@@ -4,12 +4,13 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-;; TODO: all prims
 ;; TODO: varargs as?
 ;; TODO: class hier sorting
 ;; TODO: Object hinting
 ;; TODO: default methods
 ;; TODO: primitive arrays
+;; TODO: improve tcompare to better handle unknown cases
+;; TODO: aggregate various lookup tables
 ;; TODO: hint return of constructor functions?
 ;; TODO: error when class || method not resolved
 ;; TODO: cache
