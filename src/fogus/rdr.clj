@@ -362,3 +362,17 @@
    (build-dispatch-tree '[]  '[]))
 
 )
+
+;; Object hint
+
+(comment
+  (set! *warn-on-reflection* true)
+
+  (fn compareTo10601 
+    ([self arg]
+     (clojure.core/cond 
+       (clojure.core/instance? java.sql.Timestamp arg) (. ^java.sql.Timestamp self compareTo ^java.sql.Timestamp arg) 
+       (clojure.core/instance? java.util.Date arg) (. ^java.sql.Timestamp self compareTo ^java.util.Date arg) 
+       :default (. ^java.sql.Timestamp self compareTo ^java.lang.Object arg))))
+
+)
