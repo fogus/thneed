@@ -7,7 +7,6 @@
 ;; TODO: better generated fn names
 ;; TODO: varargs as?
 ;; TODO: class hier sorting
-;; TODO: Object hinting
 ;; TODO: default methods
 ;; TODO: primitive arrays
 ;; TODO: improve tcompare to better handle unknown cases
@@ -212,9 +211,13 @@
          (build-conditional-dispatch dispatch-tree [] arglist target class-sym method-sym)
          (build-simple-dispatch arglist target class-sym method-sym)))))
 
+(defn- build-fn-name [{:keys [static? class-sym method-sym]}]
+  (let [sep (if static? \/ \#)]
+    (munge (gensym (str class-sym sep method-sym "-deligate")))))
+
 (defn- build-method-fn
   [{:keys [static? class-sym method-sym arities] :as descr}]
-  `(fn ~(gensym (name method-sym))
+  `(fn ~(build-fn-name descr)
      ~@(map (fn [[arity sigs]]
               (build-body arity sigs static? class-sym method-sym))
             arities)))
