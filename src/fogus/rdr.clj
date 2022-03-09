@@ -79,7 +79,15 @@
              char 5
              boolean 6
              short 7
-             byte 8})
+             byte 8
+             long<> 10
+             double<> 11
+             int<> 12
+             float<> 13
+             char<> 14
+             boolean<> 15
+             short<> 16
+             byte<> 17})
 
 (defn- tcompare
   "Comaparator for the type/arg tuple comprising the dispatch tree. Compares the
@@ -119,7 +127,8 @@
     boolean boolean
     char char
     byte<> bytes
-    char<> chars})
+    char<> chars
+    int<> ints})
 
 (defn- build-resolutions
   "Given a seq of types and their corresponding arguments, builds a seq of coercion
@@ -152,6 +161,13 @@
         false
         (-> x class .getComponentType (= Character/TYPE))))
 
+(defn ints?
+  "Return true if x is an integer array"
+  {:added "1.9"}
+  [x] (if (nil? x)
+        false
+        (-> x class .getComponentType (= Integer/TYPE))))
+
 (def ttable '{long Long
               int  Integer
               float Float
@@ -161,7 +177,8 @@
               boolean Boolean
               char Character
               byte<> bytes?
-              char<> chars?})
+              char<> chars?
+              int<> ints?})
 
 ;; DISPATCH TABLE BUILDING
 
@@ -296,7 +313,7 @@
   ((make-fn java.lang.Math nextAfter) 0.1 1.1)
   ((make-fn java.util.Date java.util.Date) (int 1))
 
-  (import 'java.util.Date)
+  ((make-fn java.lang.String java.lang.String) "foo")
   
   (build-method-fn (build-method-descriptor 'java.lang.Math 'abs))
   (build-method-fn (build-method-descriptor 'java.lang.Math 'nextAfter))
@@ -305,7 +322,7 @@
   (build-method-fn (build-method-descriptor 'java.sql.Timestamp 'compareTo))
   (build-method-fn (build-method-descriptor 'java.lang.String 'format))
   (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date))
-  (clojure.pprint/pprint (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String)))
+  (spit "foo.clj" (with-out-str (clojure.pprint/pprint (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String)))))
 
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)
   
