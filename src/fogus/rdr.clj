@@ -4,6 +4,7 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
+;; TODO: better generated fn names
 ;; TODO: varargs as?
 ;; TODO: class hier sorting
 ;; TODO: Object hinting
@@ -253,7 +254,10 @@
 (defn- overloads
   "Returns a seq of the overides for a given method in clojure.reflect/reflect structs."
   [details method-sym]
-  (->> details :members (filter (comp #{method-sym} :name))))
+  (->> details
+       :members
+       (filter (comp #{method-sym} :name))
+       (remove #(-> % :flags (contains? :bridge)))))
 
 (defn- build-method-descriptor
   "Takes a class and method symbol and builds a descriptor for the method containing:
