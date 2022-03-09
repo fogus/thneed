@@ -4,7 +4,11 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
+;; TODO: all prims
 ;; TODO: varargs as?
+;; TODO: class hier sorting
+;; TODO: Object hinting
+;; TODO: default methods
 ;; TODO: primitive arrays
 ;; TODO: hint return of constructor functions?
 ;; TODO: error when class || method not resolved
@@ -71,22 +75,29 @@
 (def ranks '{long 1
              double 2
              int 3
-             float 4})
+             float 4
+             char 5
+             boolean 6
+             short 7
+             byte 8})
 
 (defn- tcompare
   "Comaparator for the type/arg tuple comprising the dispatch tree. Compares the
   priority ranking as found in ranks or defaults to < if not found to avoid clashes
   on types not found in ranks."
   [[t1 _] [t2 _]]
-  (compare (get ranks t1 0)
-           (get ranks t2 1)))
+  (compare (get ranks t1 10)
+           (get ranks t2 11)))
 
 (defn- build-dispatch-tree
   "Given a set of type signatures and an arglist, builds a tree representing the
   type+arg matching for a set of signatures for a single arity. The tree is built
   from nested maps sorted by the type priority rankings. Each branch represents a
   single siganture and layers correspond to the same positional argument in all
-  of the signatures."
+  of the signatures.
+
+  {(double x) {(double y) {}}
+   (float x)  {(double y) {}}"
   [sigs args]
   (let [tuples (map #(partition 2 (interleave %1 %2)) sigs (cycle [args]))]
     (apply (fn m [& all] (apply merge-with m all))
@@ -102,7 +113,13 @@
   '{int int
     float float
     long long
-    double double})
+    double double
+    short short
+    byte byte
+    boolean boolean
+    char char
+    byte<> bytes
+    char<> chars})
 
 (defn- build-resolutions
   "Given a seq of types and their corresponding arguments, builds a seq of coercion
@@ -128,12 +145,28 @@
         target `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@(build-resolutions types args))
         :default `(. ~class-sym ~method-sym ~@(build-resolutions types args))))
 
+(defn chars?
+  "Return true if x is a char array"
+  {:added "1.9"}
+  [x] (if (nil? x)
+        false
+        (-> x class .getComponentType (= Character/TYPE))))
+
 (def ttable '{long Long
               int  Integer
               float Float
-              double Double})
+              double Double
+              short Short
+              byte Byte
+              boolean Boolean
+              char Character
+              byte<> bytes?
+              char<> chars?})
 
 ;; DISPATCH TABLE BUILDING
+
+(defn- pred? [sym]
+  (-> sym name seq last (= \?)))
 
 (defn- build-conditional-dispatch
   "Given a dispatch tree for a single arity, a stack of types encountered so far, the
@@ -146,8 +179,11 @@
     `(cond
        ~@(let [branches (map (fn [[param subtree]]
                                (let [[t p] param
-                                     ts (conj type-stack t)]
-                                 [(list `instance? (get ttable t t) p)
+                                     ts (conj type-stack t)
+                                     checker (get ttable t t)]
+                                 [(if (pred? checker)
+                                    (list checker p)
+                                    (list `instance? checker p))
                                   (if (seq subtree)
                                     (build-conditional-dispatch subtree
                                                                 ts
@@ -269,7 +305,7 @@
   (build-method-fn (build-method-descriptor 'java.sql.Timestamp 'compareTo))
   (build-method-fn (build-method-descriptor 'java.lang.String 'format))
   (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date))
-  ;;(build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String))
+  (clojure.pprint/pprint (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String)))
 
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)
   

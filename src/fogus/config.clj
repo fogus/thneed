@@ -31,3 +31,14 @@
       (throw (ex-info
                (str "Failed to read a configuration file from " from)
                {:from from})))))
+
+(comment
+  (set! *warn-on-reflection* true)
+  (clojure.core/fn compareTo10601 
+    ([self10602 G__10603]
+     (clojure.core/cond 
+                        (clojure.core/instance? java.sql.Timestamp G__10603) (. ^java.sql.Timestamp self10602 compareTo ^java.sql.Timestamp G__10603) 
+                        (clojure.core/instance? java.util.Date G__10603)     (. ^java.sql.Timestamp self10602 compareTo ^java.util.Date G__10603) 
+                        :default (. ^java.sql.Timestamp self10602 compareTo ^java.lang.Object G__10603))))
+
+)
