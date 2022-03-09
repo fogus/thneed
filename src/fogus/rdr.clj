@@ -4,8 +4,7 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-;; TODO: better generated fn names
-;; TODO: varargs as?
+;; TODO: varargs as last arg array?
 ;; TODO: class hier sorting
 ;; TODO: default methods
 ;; TODO: primitive arrays
@@ -300,6 +299,7 @@
   (build-method-fn (build-method-descriptor 'java.sql.Timestamp 'compareTo))
   (build-method-fn (build-method-descriptor 'java.lang.String 'format))
   (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date))
+  (build-method-fn (build-method-descriptor 'java.util.ArrayList 'forEach))
   (spit "foo.clj" (with-out-str (clojure.pprint/pprint (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String)))))
 
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)

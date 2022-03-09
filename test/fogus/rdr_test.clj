@@ -50,6 +50,14 @@
   (is (= "we are 138"
          ((rdr/make-fn java.lang.String format) Locale/US "we are %d" (to-array [138])))))
 
+(deftest default-method
+  (is (= "123"
+         (with-out-str
+           ((rdr/make-fn java.util.ArrayList forEach)
+            (java.util.ArrayList. [1 2 3])
+            (reify java.util.function.Consumer
+              (accept [_ o] (print o))))))))
+
 (deftest constructors
   (is (= 2022)
       (let [^java.util.Date date ((rdr/make-fn java.util.Date java.util.Date))]
