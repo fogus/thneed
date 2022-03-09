@@ -37,9 +37,11 @@
   (is (= ["A" "BC"]
          (map #((rdr/make-fn java.lang.String toUpperCase) % Locale/US) ["a" "bc"])))
 
-  (testing "methods that bottom out at Object"
+  (testing "methods that have a bridge method on Object"
     (is (= 0
-           ((rdr/make-fn java.sql.Timestamp compareTo) (Timestamp. 0) (Timestamp. 0))))))
+           ((rdr/make-fn java.sql.Timestamp compareTo) (Timestamp. 0) (Timestamp. 0))))
+    (is (= 0
+           ((rdr/make-fn java.sql.Timestamp compareTo) (Timestamp. 0) (-> (Timestamp. 0) .getTime (Date.)))))))
 
 (deftest varargs
   (is (= "we are 138"
