@@ -72,32 +72,42 @@
           (int \.)
           rdr)))
 
-;; TREE BUILDING
+;; TYPES and CHECKS
 
-(def ranks '{long 1
-             double 2
-             int 3
-             float 4
-             char 5
-             boolean 6
-             short 7
-             byte 8
-             long<> 10
-             double<> 11
-             int<> 12
-             float<> 13
-             char<> 14
-             boolean<> 15
-             short<> 16
-             byte<> 17})
+(defn tpred [t]
+  (fn [x]
+    (if (nil? x)
+      false
+      (-> x class .getComponentType (= t)))))
+
+(def types-table
+  {'long      {:rank 1  :coercer `long     :checker Long}
+   'double    {:rank 2  :coercer `double   :checker Double}
+   'int       {:rank 3  :coercer `int      :checker Integer}
+   'float     {:rank 4  :coercer `float    :checker Float}
+   'char      {:rank 5  :coercer `char     :checker Character}
+   'boolean   {:rank 6  :coercer `boolean  :checker Boolean}
+   'short     {:rank 7  :coercer `short    :checker Short}
+   'byte      {:rank 8  :coercer `byte     :checker Byte}
+   'long<>    {:rank 9  :coercer `longs    :checker (tpred Long/TYPE)}
+   'double<>  {:rank 10 :coercer `doubles  :checker (tpred Double/TYPE)}
+   'int<>     {:rank 11 :coercer `ints     :checker (tpred Integer/TYPE)}
+   'float<>   {:rank 12 :coercer `floats   :checker (tpred Float/TYPE)}
+   'char<>    {:rank 13 :coercer `chars    :checker (tpred Character/TYPE)}
+   'boolean<> {:rank 14 :coercer `booleans :checker (tpred Short/TYPE)}
+   'short<>   {:rank 15 :coercer `shorts   :checker (tpred Byte/TYPE)}
+   'byte<>    {:rank 16 :coercer `bytes    :checker bytes?}
+   })      
+
+;; TREE BUILDING
 
 (defn- tcompare
   "Comaparator for the type/arg tuple comprising the dispatch tree. Compares the
   priority ranking as found in ranks or defaults to < if not found to avoid clashes
   on types not found in ranks."
   [[t1 _] [t2 _]]
-  (compare (get ranks t1 10)
-           (get ranks t2 11)))
+  (compare (get-in types-table [t1 :rank] 10)
+           (get-in types-table [t2 :rank] 11)))
 
 (defn- build-dispatch-tree
   "Given a set of type signatures and an arglist, builds a tree representing the
@@ -119,19 +129,6 @@
 
 ;; CALLSITE BUILDING
 
-(def coercions
-  '{int int
-    float float
-    long long
-    double double
-    short short
-    byte byte
-    boolean boolean
-    char char
-    byte<> bytes
-    char<> chars
-    int<> ints})
-
 (defn- build-resolutions
   "Given a seq of types and their corresponding arguments, builds a seq of coercion
   forms for each argument. Attempts to look up a coercion function name in coercions
@@ -139,7 +136,7 @@
   attached :tag metadata to that argument for the type."
   [types args]
   (map (fn [t a]
-         (let [coercer (get coercions t)]
+         (let [coercer (get-in types-table [t :coercer])]
            (if coercer
              (list coercer a)
              (with-meta a {:tag t}))))
@@ -155,32 +152,6 @@
   (cond (ctor? class-sym method-sym) `(new ~class-sym ~@(build-resolutions types args))
         target `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@(build-resolutions types args))
         :default `(. ~class-sym ~method-sym ~@(build-resolutions types args))))
-
-(defn chars?
-  "Return true if x is a char array"
-  {:added "1.9"}
-  [x] (if (nil? x)
-        false
-        (-> x class .getComponentType (= Character/TYPE))))
-
-(defn ints?
-  "Return true if x is an integer array"
-  {:added "1.9"}
-  [x] (if (nil? x)
-        false
-        (-> x class .getComponentType (= Integer/TYPE))))
-
-(def ttable '{long Long
-              int  Integer
-              float Float
-              double Double
-              short Short
-              byte Byte
-              boolean Boolean
-              char Character
-              byte<> bytes?
-              char<> chars?
-              int<> ints?})
 
 ;; DISPATCH TABLE BUILDING
 
@@ -199,8 +170,8 @@
        ~@(let [branches (map (fn [[param subtree]]
                                (let [[t p] param
                                      ts (conj type-stack t)
-                                     checker (get ttable t t)]
-                                 [(if (pred? checker)
+                                     checker (get-in types-table [t :checker] t)]
+                                 [(if (fn? checker)
                                     (list checker p)
                                     (list `instance? checker p))
                                   (if (seq subtree)
