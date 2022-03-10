@@ -68,3 +68,7 @@
 
   (is (= "foo")
       ((rdr/make-fn java.lang.String java.lang.String) "foo")))
+
+(deftest primitve-arrays
+  (is (= "foo")
+      ((rdr/make-fn java.lang.String java.lang.String) (-> "foo" String. .getBytes))))

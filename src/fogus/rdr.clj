@@ -4,11 +4,10 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-;; TODO: varargs as last arg array?
 ;; TODO: class hier sorting
-;; TODO: primitive arrays
 ;; TODO: improve tcompare to better handle unknown cases
 ;; TODO: hint return of constructor functions?
+;; TODO: lift out singleton cond branches
 ;; TODO: error when class || method not resolved
 ;; TODO: cache
 
@@ -102,8 +101,8 @@
   priority ranking as found in ranks or defaults to < if not found to avoid clashes
   on types not found in ranks."
   [[t1 _] [t2 _]]
-  (compare (get-in types-table [t1 :rank] 10)
-           (get-in types-table [t2 :rank] 11)))
+  (compare (get-in types-table [t1 :rank] (hash t1))
+           (get-in types-table [t2 :rank] (hash t2))))
 
 (defn- build-dispatch-tree
   "Given a set of type signatures and an arglist, builds a tree representing the
@@ -143,7 +142,13 @@
   "Given the information required to build a call form, returns one of: a static
   method call, an instance method call with target object name and hinting, or
   a call to new if a constructor is signified. All arguments to the call form will
-  be coerced to the expected types."
+  be coerced to the expected types.
+
+  static call: (. Klass method (coerce arg1) ^T arg2 ...)
+
+  instance call: (. ^Klass self method (coerce arg1) ^T arg2 ...)
+
+  c-tor: (new Klass (coerce arg1) ^T arg2 ...)"
   [types args target class-sym method-sym]
   (cond (ctor? class-sym method-sym) `(new ~class-sym ~@(build-resolutions types args))
         target `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@(build-resolutions types args))
@@ -151,15 +156,21 @@
 
 ;; DISPATCH TABLE BUILDING
 
-(defn- pred? [sym]
-  (-> sym name seq last (= \?)))
-
 (defn- build-conditional-dispatch
   "Given a dispatch tree for a single arity, a stack of types encountered so far, the
   arg list, and the data needed to build a call form, returns a dispatch table that checks
   each possible argument type and the overloads of each that bottoms out into a call
   that coerces its arguments to the expected types. The dispatch table is implemented as
-  nested conds that branch on the disparate types for each argument."
+  nested conds that branch on the disparate types for each argument.
+
+  for a set of signatures [[T U] [T V] [U V]] and args [x y] on a static method Klass/method:
+
+  (cond
+    (instance? T x) (cond
+                      (instance? U y) (. Klass method ^T x ^U y)
+                      :default        (. Klass method ^T x ^V y))
+    :default (. Klass method ^U x ^V y))
+  "
   [tree type-stack args target class-sym method-sym]
   (when tree
     `(cond
@@ -179,7 +190,7 @@
                                                                 method-sym)
                                     (build-callsite ts args target class-sym method-sym))]))
                              (seq tree))
-               ;; patch up the final branch to be the default case (i.e. last coercion)
+               ;; patch up the final branch to be the last coercion
                default-branch (->> branches last second (vector :default))]
            (apply concat (conj (vec (butlast branches)) default-branch))))))
 
@@ -188,7 +199,13 @@
 (defn- build-simple-dispatch
   "Given the information required to build a call form, returns one of: a static
   method call, an instance method call with target object name and hinting, or
-  a call to new if a constructor is signified. None of the arguments are coerced."
+  a call to new if a constructor is signified. None of the arguments are coerced.
+
+  static call: (. Klass method arg1 arg2 ...)
+
+  instance call: (. ^Klass self method arg1 arg2 ...)
+
+  c-tor: (new Klass arg1 arg2 ...)"
   [args target class-sym method-sym]
   (cond (ctor? class-sym method-sym) `(new ~class-sym ~@args)
         target `(. ~(with-meta target {:tag class-sym}) ~method-sym ~@args)
@@ -199,7 +216,11 @@
   is static, and the class and function names and uilds a function body for that arity.
   If there are no overloads for this arity then the body has no conditional branching on
   types and none of the arguments to the call are coerced. In the case of type overloading
-  a conditional dispatch table is built and arguments to calls are coerced as needed."
+  a conditional dispatch table is built and arguments to calls are coerced as needed.
+
+  Given Klass/method of arities 2 and some types overloads on that arity:
+
+  ([x y] (cond ...type dispatch branching for x+y...))"
   [arity sigs static? class-sym method-sym]
   (let [arglist  (repeatedly arity gensym)
         target   (when (not static?) (with-meta (gensym "self") {:tag class-sym}))
@@ -214,6 +235,11 @@
     (munge (gensym (str class-sym sep method-sym "-deligate")))))
 
 (defn- build-method-fn
+  "Given Klass/method of arities #{1 2} and some types overloads on those arities:
+  
+  (fn <name from Klass/method>
+    ([x]   (cond ...type dispatch branching for x...))
+    ([x y] (cond ...type dispatch branching for x+y...)))"
   [{:keys [static? class-sym method-sym arities] :as descr}]
   `(fn ~(build-fn-name descr)
      ~@(map (fn [[arity sigs]]
@@ -293,16 +319,14 @@
   ((make-fn java.lang.String java.lang.String) "foo")
   
   (build-method-fn (build-method-descriptor 'java.lang.Math 'abs))
-  (build-method-fn (build-method-descriptor 'java.lang.Math 'nextAfter))
   (build-method-fn (build-method-descriptor 'java.lang.String 'toUpperCase))
   (build-method-fn (build-method-descriptor 'java.util.Collections 'max))
+  (build-method-fn (build-method-descriptor 'java.lang.Math 'nextAfter))
   (build-method-fn (build-method-descriptor 'java.sql.Timestamp 'compareTo))
   (build-method-fn (build-method-descriptor 'java.lang.String 'format))
   (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date))
   (build-method-fn (build-method-descriptor 'java.util.ArrayList 'forEach))
-  (spit "foo.clj" (with-out-str (clojure.pprint/pprint (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String)))))
-
-  (spit "baz.clj" (with-out-str (clojure.pprint/pprint (:members (ref/reflect java.lang.String)))))
+  (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String))
 
   (make-fn java.lang.String java.lang.String)
   

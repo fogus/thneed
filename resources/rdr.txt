@@ -5,97 +5,210 @@
 ;; METHOD: Math/abs
 ;; SIGS:   [[int] [long] [float] [double]]
 
-(clojure.core/fn abs11949
-  ([G__11950]
-   (clojure.core/cond
-     (clojure.core/instance? Float G__11950) (. Math abs (float G__11950))
-     (clojure.core/instance? Long G__11950) (. Math abs (long G__11950))
-     (clojure.core/instance? Integer G__11950) (. Math abs (int G__11950))
-     (clojure.core/instance? Double G__11950) (. Math abs (double G__11950))
-     :default (throw (IllegalArgumentException.
-                      (str "invalid argument type to Math/abs: " G__11950))))))
+(clojure.core/fn java.lang.Math_SLASH_abs_deligate16310
+  ([G__16311]
+   (clojure.core/cond (clojure.core/instance? java.lang.Long G__16311) (. java.lang.Math abs (clojure.core/long G__16311))
+                      (clojure.core/instance? java.lang.Double G__16311) (. java.lang.Math abs (clojure.core/double G__16311))
+                      (clojure.core/instance? java.lang.Integer G__16311) (. java.lang.Math abs (clojure.core/int G__16311))
+                      :default (. java.lang.Math abs (clojure.core/float G__16311)))))
 
 
 ;; METHOD: String#toUppercase
 ;; SIGS:   [[] [java.util.Locale]]
 ;; NOTE:   No arity nor type overloads
 
-(clojure.core/fn toUpperCase11987
-  ([self11988]
-   (. self11988 toUpperCase))
-  ([self11989 G__11990] (. self11989 toUpperCase G__11990)))
-
+(clojure.core/fn java.lang.String_SHARP_toUpperCase_deligate16318
+  ([self16319]
+   (. self16319 toUpperCase))
+  ([self16320 G__16321]
+   (. self16320 toUpperCase G__16321)))
 
 
 ;; METHOD: Collections/max
 ;; SIGS:   [[java.util.Collection] [java.util.Collection java.util.Comparator]]
 ;; NOTE:   No arity nor type overloads
 
-(clojure.core/fn max12045
-  ([G__12046] (. Collections max G__12046))
-  ([G__12047 G__12048] (. Collections max G__12047 G__12048)))
-
+(clojure.core/fn java.util.Collections_SLASH_max_deligate16324
+  ([G__16325]
+   (. java.util.Collections max G__16325))
+  ([G__16326 G__16327]
+   (. java.util.Collections max G__16326 G__16327)))
 
 
 ;; METHOD: Math/nextAfter
 ;; SIGS:   [[float double] [double double]]
+;; NOTE: cleaned up qualified function names to make the code width more narrow
 
-(clojure.core/fn nextAfter12058
-  ([G__12059 G__12060]
-   (clojure.core/cond (clojure.core/instance? Float G__12059)
-                      (clojure.core/cond (clojure.core/instance? Double G__12060)
-                                         (. Math nextAfter
-                                            (float G__12059)
-                                            (double G__12060))
-                                         :default (throw (IllegalArgumentException.
-                                                          (str "invalid argument type to Math/nextAfter: " G__12060))))
-                      (clojure.core/instance? Double G__12059)
-                      (clojure.core/cond (clojure.core/instance? Double G__12060)
-                                         (. Math nextAfter
-                                            (double G__12059)
-                                            (double G__12060))
-                                         :default (throw (IllegalArgumentException.
-                                                          (str "invalid argument type to Math/nextAfter: " G__12060))))
-                      :default (throw (IllegalArgumentException.
-                                       (str "invalid argument type to Math/nextAfter: " G__12059))))))
+(clojure.core/fn java.lang.Math_SLASH_nextAfter_deligate16330
+  ([G__16331 G__16332]
+   (cond (instance? java.lang.Double G__16331) (cond
+                                                 :default (. java.lang.Math nextAfter (double G__16331) (double G__16332)))
+         :default (cond
+                    :default (. java.lang.Math nextAfter (float G__16331) (double G__16332))))))
 
 
 ;; METHOD: Timestamp#compareTo
 ;; SIGS:   [[java.util.Date] [java.sql.Timestamp] [java.lang.Object]]
 ;; NOTE:   Object argument resides in base. What to do here?
 
-(clojure.core/fn compareTo12075
-  ([self12076 G__12077]
-   (clojure.core/cond (clojure.core/instance? java.util.Date G__12077) (. self12076 compareTo G__12077)
-                      (clojure.core/instance? java.sql.Timestamp G__12077) (. self12076 compareTo G__12077)
-                      (clojure.core/instance? java.lang.Object G__12077) (. self12076 compareTo G__12077)  ;; bottoming-out at Object... 
-                      :default (throw (IllegalArgumentException. (str "invalid argument type to Timestamp/compareTo: " G__12077))))))
-
+(clojure.core/fn java.sql.Timestamp_SHARP_compareTo_deligate16335
+  ([self16336 G__16337]
+   (clojure.core/cond (clojure.core/instance? java.sql.Timestamp G__16337) (. self16336 compareTo G__16337)
+                      :default (. self16336 compareTo G__16337))))
 
 
 ;; METHOD: String/format
 ;; SIGS:   [[java.lang.String java.lang.Object<>] [java.util.Locale java.lang.String java.lang.Object<>]]
 ;; NOTE:   varargs currently handled as array in last arg position. Better option?
 
-(clojure.core/fn format12080
-  ([G__12081 G__12082]
-   (. String format G__12081 G__12082))
-  ([G__12083 G__12084 G__12085]
-   (. String format G__12083 G__12084 G__12085)))  ;; final arg in place of vararg, needs to-array call?
+(clojure.core/fn java.lang.String_SLASH_format_deligate16340
+  ([G__16341 G__16342]
+   (. java.lang.String format G__16341 G__16342))
+  ([G__16343 G__16344 G__16345]
+   (. java.lang.String format G__16343 G__16344 G__16345)))
 
 
 ;; CTOR: Date
 ;; SIGS: [[] [long] [java.lang.String] [int int int] [int int int int int] [int int int int int int]]
 
-(clojure.core/fn java.util.Date7227
-  ([] (new java.util.Date))
-  ([G__7228]
-   (clojure.core/cond (clojure.core/instance? Long G__7228) (new java.util.Date (long G__7228))
-                      (clojure.core/instance? java.lang.String G__7228) (new java.util.Date G__7228)
-                      :default (throw (IllegalArgumentException. (str "invalid argument type to java.util.Date/java.util.Date: " G__7228)))))
-  ([G__7229 G__7230 G__7231]
-   (new java.util.Date G__7229 G__7230 G__7231))
-  ([G__7232 G__7233 G__7234 G__7235 G__7236]
-   (new java.util.Date G__7232 G__7233 G__7234 G__7235 G__7236))
-  ([G__7237 G__7238 G__7239 G__7240 G__7241 G__7242]
-   (new java.util.Date G__7237 G__7238 G__7239 G__7240 G__7241 G__7242)))
+(clojure.core/fn java.util.Date_SLASH_java.util.Date_deligate16348
+  ([]
+   (new java.util.Date))
+  ([G__16349]
+   (clojure.core/cond (clojure.core/instance? java.lang.String G__16349) (new java.util.Date G__16349)
+                      :default (new java.util.Date (clojure.core/long G__16349))))
+  ([G__16350 G__16351 G__16352]
+   (new java.util.Date G__16350 G__16351 G__16352))
+  ([G__16353 G__16354 G__16355 G__16356 G__16357]
+   (new java.util.Date G__16353 G__16354 G__16355 G__16356 G__16357))
+  ([G__16358 G__16359 G__16360 G__16361 G__16362 G__16363]
+   (new java.util.Date G__16358 G__16359 G__16360 G__16361 G__16362 G__16363)))
+
+
+;; CTOR: String
+;; SIGS: 
+'[[]
+  [byte<>] [java.lang.StringBuilder] [java.lang.StringBuffer] [char<>] [java.lang.String]
+  [byte<> java.lang.String] [byte<> int] [byte<> java.nio.charset.Charset]
+  [int<> int int] [char<> int int] [byte<> int int]
+  [byte<> int int java.nio.charset.Charset] [byte<> int int java.lang.String] [byte<> int int int]]
+
+(clojure.core/fn
+ java.lang.String_SLASH_java.lang.String_deligate16477
+ ([] (new java.lang.String))
+ ([G__16478]
+  (clojure.core/cond
+   (clojure.core/instance? java.lang.StringBuffer G__16478)
+   (new java.lang.String G__16478)
+   (clojure.core/instance? java.lang.StringBuilder G__16478)
+   (new java.lang.String G__16478)
+   (clojure.core/instance? java.lang.String G__16478)
+   (new java.lang.String G__16478)
+   ((clojure.core/fn
+     [x__16395__auto__]
+     (if
+      (clojure.core/nil? x__16395__auto__)
+      false
+      (clojure.core/->
+       x__16395__auto__
+       clojure.core/class
+       .getComponentType
+       (clojure.core/= Character/TYPE))))
+    G__16478)
+   (new java.lang.String (clojure.core/chars G__16478))
+   :default
+   (new java.lang.String (clojure.core/bytes G__16478))))
+ ([G__16479 G__16480]
+  (clojure.core/cond
+   :default
+   (clojure.core/cond
+    (clojure.core/instance? java.lang.String G__16480)
+    (new java.lang.String (clojure.core/bytes G__16479) G__16480)
+    (clojure.core/instance? java.lang.Integer G__16480)
+    (new
+     java.lang.String
+     (clojure.core/bytes G__16479)
+     (clojure.core/int G__16480))
+    :default
+    (new java.lang.String (clojure.core/bytes G__16479) G__16480))))
+ ([G__16481 G__16482 G__16483]
+  (clojure.core/cond
+   ((clojure.core/fn
+     [x__16395__auto__]
+     (if
+      (clojure.core/nil? x__16395__auto__)
+      false
+      (clojure.core/->
+       x__16395__auto__
+       clojure.core/class
+       .getComponentType
+       (clojure.core/= Integer/TYPE))))
+    G__16481)
+   (clojure.core/cond
+    :default
+    (clojure.core/cond
+     :default
+     (new
+      java.lang.String
+      (clojure.core/ints G__16481)
+      (clojure.core/int G__16482)
+      (clojure.core/int G__16483))))
+   ((clojure.core/fn
+     [x__16395__auto__]
+     (if
+      (clojure.core/nil? x__16395__auto__)
+      false
+      (clojure.core/->
+       x__16395__auto__
+       clojure.core/class
+       .getComponentType
+       (clojure.core/= Character/TYPE))))
+    G__16481)
+   (clojure.core/cond
+    :default
+    (clojure.core/cond
+     :default
+     (new
+      java.lang.String
+      (clojure.core/chars G__16481)
+      (clojure.core/int G__16482)
+      (clojure.core/int G__16483))))
+   :default
+   (clojure.core/cond
+    :default
+    (clojure.core/cond
+     :default
+     (new
+      java.lang.String
+      (clojure.core/bytes G__16481)
+      (clojure.core/int G__16482)
+      (clojure.core/int G__16483))))))
+ ([G__16484 G__16485 G__16486 G__16487]
+  (clojure.core/cond
+   :default
+   (clojure.core/cond
+    :default
+    (clojure.core/cond
+     :default
+     (clojure.core/cond
+      (clojure.core/instance? java.lang.String G__16487)
+      (new
+       java.lang.String
+       (clojure.core/bytes G__16484)
+       (clojure.core/int G__16485)
+       (clojure.core/int G__16486)
+       G__16487)
+      (clojure.core/instance? java.lang.Integer G__16487)
+      (new
+       java.lang.String
+       (clojure.core/bytes G__16484)
+       (clojure.core/int G__16485)
+       (clojure.core/int G__16486)
+       (clojure.core/int G__16487))
+      :default
+      (new
+       java.lang.String
+       (clojure.core/bytes G__16484)
+       (clojure.core/int G__16485)
+       (clojure.core/int G__16486)
+       G__16487)))))))
