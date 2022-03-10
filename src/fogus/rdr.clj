@@ -228,6 +228,7 @@
   (->> details
        :members
        (filter (comp #{method-sym} :name))
+       (filter #(-> % :flags (contains? :public)))
        (remove #(-> % :flags (contains? :bridge)))))
 
 (defn- build-method-descriptor

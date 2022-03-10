@@ -61,4 +61,10 @@
 (deftest constructors
   (is (= 2022)
       (let [^java.util.Date date ((rdr/make-fn java.util.Date java.util.Date))]
-        (.getYear date))))
+        (.getYear date)))
+
+  (is (= "")
+      ((rdr/make-fn java.lang.String java.lang.String)))
+
+  (is (= "foo")
+      ((rdr/make-fn java.lang.String java.lang.String) "foo")))
