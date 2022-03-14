@@ -72,3 +72,17 @@
 (deftest primitve-arrays
   (is (= "foo")
       ((rdr/make-fn java.lang.String java.lang.String) (-> "foo" String. .getBytes))))
+
+(deftest type-sorting
+  (let [prims   '[(float n) (double n) (int n) (long n)]
+        klasses ['java.util.List 'java.util.ArrayList 'java.util.Date 'java.sql.Timestamp nil]
+        mixed '[(int n) (float n) (double n) (long n) (java.util.List n) (java.util.ArrayList n) (java.util.Date n) (java.sql.Timestamp n)]]
+    
+    (is (= '[(long n) (double n) (int n) (float n) (java.sql.Timestamp n) (java.util.ArrayList n) (java.util.Date n) (java.util.List n)]
+           (sort-by identity @#'fogus.rdr/tcompare mixed)))
+
+    (is (= '[(long n) (double n) (int n) (float n)]
+           (sort-by identity @#'fogus.rdr/tcompare prims)))
+
+    (is (= [nil 'java.sql.Timestamp 'java.util.ArrayList 'java.util.Date 'java.util.List]
+           (sort-by identity @#'fogus.rdr/hierarchy-comparator klasses)))))

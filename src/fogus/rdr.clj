@@ -98,7 +98,8 @@
 
 (defn- hierarchy-comparator [l r]
   (cond (= l r) 0
-        (or (nil? l) (nil? r)) 1
+        (nil? l) (if (nil? r) 0 -1)
+        (nil? r) 1
         :default (let [^java.lang.Class lc (resolve l)
                        ^java.lang.Class rc (resolve r)]
                    (cond (.isAssignableFrom lc rc)  1
@@ -122,24 +123,14 @@
           -1
           (compare (hash t1) (hash t2)))))))
 
-;;(sort-by #(get-in types-table [% :rank]) tcompare2 '[int double float long])
-
-(sort-by identity tcompare
-         '[(int n) (float n) (double n) (long n) (java.util.List n) (java.util.ArrayList n) (java.util.Date n) (java.sql.Timestamp n)])
-
-(sort-by identity tcompare
-         '[(int n) (float n) (double n) (long n) (java.util.List n) (java.util.ArrayList n) (java.util.Date n) (java.sql.Timestamp n)])
-
-(sort-by identity hierarchy-comparator ['java.util.List 'java.util.ArrayList 'java.util.Date 'java.sql.Timestamp nil])
-
 (defn- build-dispatch-tree
   "Given a set of type signatures and an arglist, builds a tree representing the
   type+arg matching for a set of signatures for a single arity. The tree is built
   from nested maps sorted by the type priority rankings. Each branch represents a
   single siganture and layers correspond to the same positional argument in all
-  of the signatures.
+  of the signatures. For the signatures [[double double] [double String] [float double]]
 
-  {(double x) {(double y) {}}
+  {(double x) {(double y) {(java.lang.String y) {}}}
    (float x)  {(double y) {}}"
   [sigs args]
   (let [tuples (map #(partition 2 (interleave %1 %2)) sigs (cycle [args]))]
