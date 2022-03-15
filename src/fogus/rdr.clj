@@ -4,8 +4,7 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-;; TODO: class hier sorting
-;; TODO: improve tcompare to better handle unknown cases
+;; TODO: non-prim arrays
 ;; TODO: hint return of constructor functions?
 ;; TODO: lift out singleton cond branches
 ;; TODO: error when class || method not resolved
@@ -304,6 +303,8 @@
      :klass      klass
      :arities    arities}))
 
+(def qmethod-cache (atom {}))
+
 (defmacro make-fn
   "Given a class and method name, returns a function that dispatches to a call of 
   the method with its arguments coerced to the expected types. If the method-sym argument
@@ -312,8 +313,10 @@
   passed to the generated function, a coersion exception will occur."
   [class-sym method-sym]
   (let [descr (build-method-descriptor class-sym method-sym)]
-    `(let []
-       ~(build-method-fn descr))))
+    `(let [gfn# ~(or (get qmethod-cache [class-sym method-sym])
+                     (build-method-fn descr))
+           ]
+       gfn#)))
 
 
 
@@ -346,9 +349,20 @@
   (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date))
   (build-method-fn (build-method-descriptor 'java.util.ArrayList 'forEach))
   (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String))
-
-  (make-fn java.lang.String java.lang.String)
   
+  (build-method-fn (build-method-descriptor 'java.util.Arrays 'binarySearch))
+  (build-method-fn (build-method-descriptor 'java.util.Arrays 'copyOf))
+  (build-method-fn (build-method-descriptor 'java.util.Arrays 'fill))
+
+  (build-method-fn (build-method-descriptor 'java.util.Collections 'sort))
+  
+  (make-fn java.lang.String java.lang.String)
+  ((make-fn java.util.Arrays asList) (long-array [1 2 3]))
+  (java.util.Arrays/asList (long-array [1 2 3]))
+
+  ((make-fn java.util.Arrays binarySearch) (long-array [1 2 3]) 1)
+  (make-fn java.util.Arrays fill)
+
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)
   
   (build-simple-dispatch '[] 'self 'String 'toUpperCase)
