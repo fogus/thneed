@@ -74,7 +74,7 @@
       ((rdr/make-fn java.lang.String java.lang.String) (-> "foo" String. .getBytes))))
 
 (deftest type-sorting
-  (let [prims   '[(float n) (double n) (int n) (long n)]
+  (let [prims   '[(float n) (double n) (int n) (long n)] ;; TODO nil
         klasses ['java.util.List 'java.util.ArrayList 'java.util.Date 'java.sql.Timestamp nil]
         mixed '[(int n) (float n) (double n) (long n) (java.util.List n) (java.util.ArrayList n) (java.util.Date n) (java.sql.Timestamp n)]]
     
@@ -86,3 +86,29 @@
 
     (is (= [nil 'java.sql.Timestamp 'java.util.ArrayList 'java.util.Date 'java.util.List]
            (sort-by identity @#'fogus.rdr/hierarchy-comparator klasses)))))
+
+(deftest object-arrays
+  (is (= [:a "b" 3 nil]
+         (seq
+          ((rdr/make-fn java.util.Arrays copyOf)
+           (object-array [:a "b" 3])
+           4))))
+  (is (= [1 2 3 0]
+         (seq
+          ((rdr/make-fn java.util.Arrays copyOf)
+           (long-array [1 2 3])
+           4))))
+
+  (is (= [42 42 42]
+         (let [bary (make-array Byte/TYPE 3)
+               _ ((rdr/make-fn java.util.Arrays fill)
+                  bary
+                  (byte 42))]
+           (seq bary))))
+
+  (is (= [:a :a :a]
+         (let [oary (make-array java.lang.Object 3)
+               _ ((rdr/make-fn java.util.Arrays fill)
+                  oary
+                  :a)]
+           (seq oary)))))

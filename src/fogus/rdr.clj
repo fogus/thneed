@@ -4,7 +4,6 @@
   (:import java.io.PushbackReader
            clojure.lang.LispReader))
 
-;; TODO: non-prim arrays
 ;; TODO: hint return of constructor functions?
 ;; TODO: lift out singleton cond branches
 ;; TODO: error when class || method not resolved
@@ -88,10 +87,10 @@
    'int<>     {:rank 11 :coercer `ints     :checker (tpred 'Integer/TYPE)}
    'float<>   {:rank 12 :coercer `floats   :checker (tpred 'Float/TYPE)}
    'char<>    {:rank 13 :coercer `chars    :checker (tpred 'Character/TYPE)}
-   'boolean<> {:rank 14 :coercer `booleans :checker (tpred 'Short/TYPE)}
-   'short<>   {:rank 15 :coercer `shorts   :checker (tpred 'Byte/TYPE)}
+   'boolean<> {:rank 14 :coercer `booleans :checker (tpred 'Boolean/TYPE)}
+   'short<>   {:rank 15 :coercer `shorts   :checker (tpred 'Short/TYPE)}
    'byte<>    {:rank 16 :coercer `bytes    :checker bytes?}
-   })      
+   'java.lang.Object<> {:coercer `to-array :checker (tpred 'java.lang.Object)}})
 
 ;; TREE BUILDING
 
@@ -349,10 +348,9 @@
   (build-method-fn (build-method-descriptor 'java.util.Date 'java.util.Date))
   (build-method-fn (build-method-descriptor 'java.util.ArrayList 'forEach))
   (build-method-fn (build-method-descriptor 'java.lang.String 'java.lang.String))
-  
-  (build-method-fn (build-method-descriptor 'java.util.Arrays 'binarySearch))
   (build-method-fn (build-method-descriptor 'java.util.Arrays 'copyOf))
   (build-method-fn (build-method-descriptor 'java.util.Arrays 'fill))
+  (spit "foo.clj" (with-out-str (clojure.pprint/pprint   (build-method-fn (build-method-descriptor 'java.util.Arrays 'binarySearch)))))
 
   (build-method-fn (build-method-descriptor 'java.util.Collections 'sort))
   
@@ -363,6 +361,9 @@
   ((make-fn java.util.Arrays binarySearch) (long-array [1 2 3]) 1)
   (make-fn java.util.Arrays fill)
 
+  (= java.lang.Object
+     (-> (object-array [1 2 3]) class .getComponentType))
+  
   (build-body 1 '[[int] [float] [double] [long]] true 'Math 'abs)
   
   (build-simple-dispatch '[] 'self 'String 'toUpperCase)
