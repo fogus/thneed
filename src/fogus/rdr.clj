@@ -6,7 +6,6 @@
 
 ;; TODO: hint return of constructor functions?
 ;; TODO: lift out singleton cond branches
-;; TODO: error when class || method not resolved
 ;; TODO: cache
 
 (set! *warn-on-reflection* true)
@@ -268,11 +267,12 @@
 (defn- overloads
   "Returns a seq of the overides for a given method in clojure.reflect/reflect structs."
   [details method-sym]
-  (->> details
-       :members
-       (filter (comp #{method-sym} :name))
-       (filter #(-> % :flags (contains? :public)))
-       (remove #(-> % :flags (contains? :bridge)))))
+  (let [method-data (filter (comp #{method-sym} :name) (:members details))]
+    (if (seq method-data)
+      (->> method-data
+           (filter #(-> % :flags (contains? :public)))
+           (remove #(-> % :flags (contains? :bridge))))
+      (throw (IllegalArgumentException. (str "No method " method-sym " found in class " (-> details :members first :declaring-class)))))))
 
 (defn- build-method-descriptor
   "Takes a class and method symbol and builds a descriptor for the method containing:
@@ -285,8 +285,10 @@
   [klass-sym method-sym]
   (let [form    (symbol (name klass-sym) (name method-sym))
         klass   (resolve klass-sym)
-        details (ref/reflect klass)
-        ovr     (overloads details method-sym) ;; what to do if there are more than one?
+        details (try (ref/reflect klass)
+                     (catch IllegalArgumentException iae
+                       (throw (IllegalArgumentException. (str "Could not resolve class " klass-sym)))))
+        ovr     (overloads details method-sym)
         static? (or (contains? (-> ovr first :flags) :static) (ctor? klass-sym method-sym))
         overloads (map (fn [m]
                          (let [params (:parameter-types m)]
@@ -311,6 +313,8 @@
   class's constructor with its arguments coerced. In the case where an unsupported type is
   passed to the generated function, a coersion exception will occur."
   [class-sym method-sym]
+  (assert class-sym  "make-fn expects a class, given nil")
+  (assert method-sym "make-fn expects a method, given nil")
   (let [descr (build-method-descriptor class-sym method-sym)]
     `(let [gfn# ~(or (get qmethod-cache [class-sym method-sym])
                      (build-method-fn descr))
@@ -322,7 +326,7 @@
 (comment
   (attach-qmethod-reader! qmethod-rdr)
 
-  ;;#.String/toUpperCase
+  (build-method-descriptor 'java.lang.Math 'foo)
   
   (def _abs (make-fn java.lang.Math abs))
   (_abs "a")
