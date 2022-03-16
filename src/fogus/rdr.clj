@@ -2,7 +2,10 @@
   (:require [clojure.reflect :as ref]
             [clojure.string :as string])
   (:import java.io.PushbackReader
-           clojure.lang.LispReader))
+           clojure.lang.LispReader
+           java.util.concurrent.ConcurrentHashMap
+           java.lang.ref.ReferenceQueue
+           java.lang.ref.SoftReference))
 
 ;; TODO: hint return of constructor functions?
 ;; TODO: lift out singleton cond branches
@@ -306,6 +309,10 @@
 
 (def qmethod-cache (atom {}))
 
+(defn- build-or-lookup-fn [class-sym method-sym descr]
+  (or (get @qmethod-cache [class-sym method-sym])
+      (build-method-fn descr)))
+
 (defmacro make-fn
   "Given a class and method name, returns a function that dispatches to a call of 
   the method with its arguments coerced to the expected types. If the method-sym argument
@@ -316,9 +323,8 @@
   (assert class-sym  "make-fn expects a class, given nil")
   (assert method-sym "make-fn expects a method, given nil")
   (let [descr (build-method-descriptor class-sym method-sym)]
-    `(let [gfn# ~(or (get qmethod-cache [class-sym method-sym])
-                     (build-method-fn descr))
-           ]
+    `(let [gfn# ~(build-or-lookup-fn class-sym method-sym descr)]
+       (swap! qmethod-cache assoc '[~class-sym ~method-sym] gfn#)
        gfn#)))
 
 
@@ -326,8 +332,6 @@
 (comment
   (attach-qmethod-reader! qmethod-rdr)
 
-  (build-method-descriptor 'java.lang.Math 'foo)
-  
   (def _abs (make-fn java.lang.Math abs))
   (_abs "a")
   
@@ -337,6 +341,8 @@
   (map (make-fn java.lang.String toUpperCase) ["a" "bc"])
 
   (map (make-fn java.util.Collections max) [[1 2 3] [4 5 6] [7 8 9]])
+
+  qmethod-cache
 
   ((make-fn java.lang.Math nextAfter) 0.1 1.1)
   ((make-fn java.util.Date java.util.Date) (int 1))
