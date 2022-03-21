@@ -112,3 +112,10 @@
                   oary
                   :a)]
            (seq oary)))))
+
+#_(deftest qmethod-cache
+  (is (identical? (rdr/make-fn java.lang.Math nextAfter)
+                  (rdr/make-fn java.lang.Math nextAfter)))
+
+  (println (rdr/make-fn java.lang.Math nextAfter))
+  (println (rdr/make-fn java.lang.Math nextAfter)))

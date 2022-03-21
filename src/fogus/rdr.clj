@@ -309,9 +309,16 @@
 
 (def qmethod-cache (atom {}))
 
-(defn- build-or-lookup-fn [class-sym method-sym descr]
-  (or (get @qmethod-cache [class-sym method-sym])
-      (build-method-fn descr)))
+(defn- lookup-fn [class-sym method-sym]
+  (let [cache @qmethod-cache]
+    (get cache [class-sym method-sym])))
+
+(defn into-cache [class-sym method-sym f]
+  (swap! qmethod-cache assoc [class-sym method-sym] f)
+  f)
+
+(defmacro emit-fn [descr]
+  `(let [] (build-method-fn ~descr)))
 
 (defmacro make-fn
   "Given a class and method name, returns a function that dispatches to a call of 
@@ -323,17 +330,28 @@
   (assert class-sym  "make-fn expects a class, given nil")
   (assert method-sym "make-fn expects a method, given nil")
   (let [descr (build-method-descriptor class-sym method-sym)]
-    `(let [gfn# ~(build-or-lookup-fn class-sym method-sym descr)]
-       (swap! qmethod-cache assoc '[~class-sym ~method-sym] gfn#)
+    `(let [gfn# ~(let [maybe-fn (lookup-fn class-sym method-sym)]
+                   (if maybe-fn
+                     maybe-fn
+                     (let [gen-fn (emit-fn descr)
+                           _ (into-cache class-sym method-sym gen-fn)]
+                       gen-fn)))]
        gfn#)))
-
-
 
 (comment
   (attach-qmethod-reader! qmethod-rdr)
 
   (def _abs (make-fn java.lang.Math abs))
   (_abs "a")
+
+  (lookup-fn 'java.lang.String 'toUpperCase)
+
+  (emit-fn (build-method-descriptor 'java.lang.String 'toUpperCase))
+  
+  (macroexpand-1 '(make-fn java.lang.String toUpperCase))
+  (macroexpand-1 '(ret-fn  java.lang.String toUpperCase gfn))
+
+  @qmethod-cache
   
   (map (make-fn java.lang.Math abs) [-1 -1.2 (int -3) (float -4.25)])
   (map _abs [-1 -1.2 (int -3) (float -4.25)])
@@ -342,10 +360,8 @@
 
   (map (make-fn java.util.Collections max) [[1 2 3] [4 5 6] [7 8 9]])
 
-  qmethod-cache
-
   ((make-fn java.lang.Math nextAfter) 0.1 1.1)
-  ((make-fn java.util.Date java.util.Date) (int 1))
+  ((make-fn java.util.Date java.util.Date) (long 1))
 
   ((make-fn java.lang.String java.lang.String) "foo")
   
