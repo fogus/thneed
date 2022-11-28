@@ -4,7 +4,7 @@
   (let [ctor (condp = (class lex)
                clojure.lang.Symbol (comp symbol name)
                clojure.lang.Keyword (comp keyword name)
-               identity)]
+               name)]
     (ctor lex)))
 
 (unqualify :a/b)
