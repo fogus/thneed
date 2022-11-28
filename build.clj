@@ -11,6 +11,11 @@
 (defn clean [_]
   (b/delete {:path "target"}))
 
+(defn compile-clj [_]
+  (b/compile-clj {:src-dirs ["src"]
+                  :class-dir class-dir
+                  :basis basis}))
+
 (defn jar [_]
   (b/write-pom {:class-dir class-dir
                 :lib lib

@@ -8,3 +8,4 @@
   (lazy-seq
     (when-let [[x] (seq s)]
       (cons x (seq1 (rest s))))))
+

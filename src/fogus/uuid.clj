@@ -34,3 +34,18 @@
 (parse-uuid "3db4db90-37c7-42aa-941c-f621d0cec91f")
 (parse-uuid "")
 (-> (rand-uuid) str parse-uuid)
+
+
+(comment
+
+  (-> clojure.lang.Keyword
+      class
+      java.io.ObjectStreamClass/lookup
+      .getSerialVersionUID)
+
+  *clojure-version*
+
+  ;; 1.10.3
+  ;;=> 3206093459760846163 
+
+)
