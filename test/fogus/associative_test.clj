@@ -2,8 +2,6 @@
   (:require [clojure.test :refer :all]
             [fogus.associative :as asc]))
 
-(set! *warn-on-reflection* true)
-
 (deftest dissoc-in-test
   (is (= {:a 1}           (asc/dissoc-in {:a 1 :b 2} [:b])))
   (is (= {:a 1 :b {:d 3}} (asc/dissoc-in {:a 1 :b {:c 2 :d 3}} [:b :c])))
