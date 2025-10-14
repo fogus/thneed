@@ -1,7 +1,6 @@
 {
  :paths ["target/classes" "src" "test"]
- :deps  {org.clojure/clojure {:mvn/version "1.11.0"}
-         org.clojure/core.logic {:mvn/version "1.0.1"}}
+ :deps  {org.clojure/clojure {:mvn/version "1.12.3"}}
 
  :aliases
  {

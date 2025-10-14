@@ -2,9 +2,9 @@
 
 An eclectic set of utilities that I've found useful enough to keep around.
 
-## Usage
+## Dev
 
-Don't.
+    clj -X:test
 
 ## License
 
