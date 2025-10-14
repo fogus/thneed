@@ -19,13 +19,3 @@
                (deliver p (callback result)))
              args)
       @p)))
-
-
-(comment
-  (def hap
-    (cps->fn #(do (Thread/sleep 3000)
-                  (%1 (apply + %&)))
-             #(println %)))
-
-  (hap 1 2 3)
-)
