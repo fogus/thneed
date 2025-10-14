@@ -26,16 +26,6 @@
           m
           ks))
 
-(comment
-  (keys-apply {:a 1, :b 2, :c 3} [:a :c] inc)
-  ;;=> {:a 2, :c 4}
-  (manip-map {:a 1, :b 2, :c 3} [:a :c] inc)
-  ;;=> {:c 4, :b 2, :a 2}
-
-  (manip-keys {:a 1, :b 2} [:a] str)
-  ;;=> {:b 2, ":a" 1}
-)
-
 (defn assoc-iff
   ([m k v]
    (if (nil? v)
@@ -51,10 +41,3 @@
     (apply merge-with deep-merge vals)
     (last vals)))
 
-(comment
-  (-> {}
-      (assoc-iff :a 1, :b 2, :c nil)
-      meta)
-
-  (deep-merge {:a 1} {:b 2} {:b 3 :c {:d 1}} {:c {:d 2}})
-)
