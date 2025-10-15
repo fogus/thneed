@@ -346,27 +346,27 @@ Function.
 
 A minimal functional registry system inspired by clojure.spec.alpha.
   
-  Provides core registry operations for managing namespaced identifiers.
-  Users maintain their own atoms/maps and the registry functions herein to
-  manage them. A registry is map from namespaced identifiers (keywords or
-  symbols) to arbitrary values, enabling global lookup and reuse of named
-  items.
+Provides core registry operations for managing namespaced identifiers.
+Users maintain their own atoms/maps and the registry functions herein to
+manage them. A registry is map from namespaced identifiers (keywords or
+symbols) to arbitrary values, enabling global lookup and reuse of named
+items.
 
-  A couple of ideas that differentiate registries from raw maps held in
-  atoms:
+Important ideas that differentiate registries from raw maps held in
+atoms:
 
-  - Alias: A registry entry whose value is an identifier that points to
-  another registry entry, creating indirection that allows one key to reference
-  another's value.
-  - Alias chain: The sequence of identifiers traversed when resolving an
-  alias, showing each indirection step from the initial key to the final
-  non-identifier value.
-  - Cycle: Alias chains may have cycles, and this library can detect and
-  annotate them.   
-  
-  Because registries are just maps - use standard Clojure functions for
-  selection/query.
-  
+- Identifier: Either a keyword or a symbol, preferably qualified.
+- Alias: A registry entry whose value is an identifier that points to
+another identifier, creating indirection that allows one key to reference
+another's value.
+- Alias chain: The sequence of identifiers traversed when resolving an
+alias, showing each indirection step from the initial key to the final
+non-identifier value.
+- Cycle: Alias chains may have cycles, and this library can detect and
+annotate them.   
+
+Because registries are just maps - use standard Clojure functions for
+selection/query.
 
 
 
@@ -377,8 +377,8 @@ A minimal functional registry system inspired by clojure.spec.alpha.
 (alias registry k target)
 ```
 
-Register k as an alias to target in registry.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L35-L39">Source</a></sub></p>
+Register identifier k as an alias to target identifier in registry.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L36-L40">Source</a></sub></p>
 
 ## <a name="fogus.reg/alias-chain">`alias-chain`</a><a name="fogus.reg/alias-chain"></a>
 ``` clojure
@@ -388,10 +388,18 @@ Register k as an alias to target in registry.
 
 Given registry reg, returns the chain of aliases from k to its
   final resolved value. An alias chain is a vector showing the resolution
-  chain, or nil if k not found. The last element in the chain is the final
-  resolved value or the keyword :fogus.reg/cycle-detected if a cycle was
-  detected.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L76-L92">Source</a></sub></p>
+  chain, or nil if k not found. If the chain has a cycle, then the predicate
+  cyclic? will return true fir it.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L83-L99">Source</a></sub></p>
+
+## <a name="fogus.reg/cyclic?">`cyclic?`</a><a name="fogus.reg/cyclic?"></a>
+``` clojure
+
+(cyclic? chain)
+```
+
+Given an alias chain, return true if there is a cycle, flase otherwise.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L78-L81">Source</a></sub></p>
 
 ## <a name="fogus.reg/lookup">`lookup`</a><a name="fogus.reg/lookup"></a>
 ``` clojure
@@ -399,17 +407,16 @@ Given registry reg, returns the chain of aliases from k to its
 (lookup reg k)
 ```
 
-Lookup key k in registry, following alias chains.
+Lookup identifier k in registry, following alias chains.
   
-  If the value at k is itself an identifier (keyword/symbol),
-  recursively looks it up until finding a non-identifier value.
-  
-  This enables indirection: you can register ::foo as ::bar,
-  and resolving ::foo will return whatever ::bar points to.
+  If the value at k is itself an identifier, then lookup recursively looks
+  it up until finding a non-identifier value. This enables indirection, allowing
+  you to register ::foo as ::bar, and resolving ::foo will return whatever
+  ::bar points to.
 
-  Returns the resolved item, or nil if k is not found or is
-  not an identifier.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L41-L60">Source</a></sub></p>
+  Returns the resolved item, or nil if k is not found. Attempting to lookup
+  a non-identifier is undefined and likely an error.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L42-L61">Source</a></sub></p>
 
 ## <a name="fogus.reg/lookup!">`lookup!`</a><a name="fogus.reg/lookup!"></a>
 ``` clojure
@@ -417,12 +424,12 @@ Lookup key k in registry, following alias chains.
 (lookup! registry k)
 ```
 
-Lookup key k in registry, throwing if not found.
+Lookup identifier k in registry, throwing if not found.
   
   Like lookup, but throws an exception if k cannot be resolved.
   Useful when a missing registry entry is an error condition.
   Returns the resolved item.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L62-L74">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L63-L76">Source</a></sub></p>
 
 ## <a name="fogus.reg/register">`register`</a><a name="fogus.reg/register"></a>
 ``` clojure
@@ -430,9 +437,9 @@ Lookup key k in registry, throwing if not found.
 (register registry k item)
 ```
 
-Register an item under key k in registry, returning a new registry.
+Register an item under identifier k in registry, returning a new registry.
   If item is nil, then the mapping for k is removed from the registry.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L27-L33">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L27-L34">Source</a></sub></p>
 
 -----
 # <a name="fogus.sets">fogus.sets</a>
