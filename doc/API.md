@@ -347,63 +347,82 @@ Function.
 A minimal functional registry system inspired by clojure.spec.alpha.
   
   Provides core registry operations for managing namespaced identifiers.
-  Users maintain their own atoms/maps and use foo.reg functions to
-  manipulate them. This allows for:
-  - Multiple independent registries
-  - Testing with isolated registries
-  - Pure functional operations
+  Users maintain their own atoms/maps and the registry functions herein to
+  manage them. A registry is map from namespaced identifiers (keywords or
+  symbols) to arbitrary values, enabling global lookup and reuse of named
+  items.
+
+  A couple of ideas that differentiate registries from raw maps held in
+  atoms:
+
+  - Alias: A registry entry whose value is an identifier that points to
+  another registry entry, creating indirection that allows one key to reference
+  another's value.
+  - Alias chain: The sequence of identifiers traversed when resolving an
+  alias, showing each indirection step from the initial key to the final
+  non-identifier value.
+  - Cycle: Alias chains may have cycles, and this library can detect and
+  annotate them.   
   
-  Registries are just maps - use standard Clojure functions for queries:
-  - (keys registry) for all keys
-  - (get registry k) for direct lookup
-  - (filter pred registry) for queries
-  - (merge r1 r2) for combining registries
-  - (empty? registry) to check if empty
-  - etc.
+  Because registries are just maps - use standard Clojure functions for
+  selection/query.
+  
 
 
 
+
+## <a name="fogus.reg/alias">`alias`</a><a name="fogus.reg/alias"></a>
+``` clojure
+
+(alias registry k target)
+```
+
+Register k as an alias to target in registry.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L35-L39">Source</a></sub></p>
 
 ## <a name="fogus.reg/alias-chain">`alias-chain`</a><a name="fogus.reg/alias-chain"></a>
 ``` clojure
 
-(alias-chain registry k)
+(alias-chain reg k)
 ```
 
-Return the chain of aliases from k to its final resolved value.
-  
-  Args:
-    registry - A registry map or atom
-    k - An identifier (keyword or symbol)
-  
-  Returns:
-    A vector showing the resolution chain, or nil if k not found.
-    The last element is the final resolved value.
-  
-  Examples:
-    Given: {::c "value", ::b ::c, ::a ::b}
-    (alias-chain reg ::a) => [::a ::b ::c "value"]
-    (alias-chain reg ::b) => [::b ::c "value"]
-    (alias-chain reg ::c) => [::c "value"]
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L109-L145">Source</a></sub></p>
+Given registry reg, returns the chain of aliases from k to its
+  final resolved value. An alias chain is a vector showing the resolution
+  chain, or nil if k not found. The last element in the chain is the final
+  resolved value or the keyword :fogus.reg/cycle-detected if a cycle was
+  detected.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L76-L92">Source</a></sub></p>
 
-## <a name="fogus.reg/all-keys-in">`all-keys-in`</a><a name="fogus.reg/all-keys-in"></a>
+## <a name="fogus.reg/lookup">`lookup`</a><a name="fogus.reg/lookup"></a>
 ``` clojure
 
-(all-keys-in registry)
+(lookup reg k)
 ```
 
-Return all keys in a registry (atom or map).
+Lookup key k in registry, following alias chains.
   
-  Convenience function for (set (keys registry)).
-  Handles both atoms and plain maps.
+  If the value at k is itself an identifier (keyword/symbol),
+  recursively looks it up until finding a non-identifier value.
   
-  Args:
-    registry - A registry map or atom
+  This enables indirection: you can register ::foo as ::bar,
+  and resolving ::foo will return whatever ::bar points to.
+
+  Returns the resolved item, or nil if k is not found or is
+  not an identifier.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L41-L60">Source</a></sub></p>
+
+## <a name="fogus.reg/lookup!">`lookup!`</a><a name="fogus.reg/lookup!"></a>
+``` clojure
+
+(lookup! registry k)
+```
+
+Lookup key k in registry, throwing if not found.
   
-  Returns:
-    A set of all keys.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L167-L182">Source</a></sub></p>
+  Like lookup, but throws an exception if k cannot be resolved.
+  Useful when a missing registry entry is an error condition.
+  Returns the resolved item.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L62-L74">Source</a></sub></p>
 
 ## <a name="fogus.reg/register">`register`</a><a name="fogus.reg/register"></a>
 ``` clojure
@@ -411,99 +430,9 @@ Return all keys in a registry (atom or map).
 (register registry k item)
 ```
 
-Register an item under key k in registry, returning new registry.
-  
-  This is a pure function - it returns a new registry map without
-  modifying the input.
-  
-  Args:
-    registry - A registry map
-    k - An identifier (keyword or symbol)
-    item - The item to register (can be anything)
-  
-  Returns:
-    A new registry map with the item registered under k.
-    If item is nil, removes k from the registry.
-  
-  Examples:
-    (register {} ::my-spec my-spec-fn)
-    (register reg ::name string?)
-    (register reg ::old-spec nil) ; removes ::old-spec
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L22-L44">Source</a></sub></p>
-
-## <a name="fogus.reg/register-alias">`register-alias`</a><a name="fogus.reg/register-alias"></a>
-``` clojure
-
-(register-alias registry k target)
-```
-
-Register k as an alias to target in registry.
-  
-  This is a convenience function that simply registers k with
-  the value of target (an identifier).
-  
-  Args:
-    registry - A registry map
-    k - The alias identifier
-    target - The identifier this alias points to
-  
-  Returns:
-    A new registry with the alias registered.
-  
-  Examples:
-    (register-alias reg ::short-name ::my.long.namespace/name)
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L147-L165">Source</a></sub></p>
-
-## <a name="fogus.reg/resolve">`resolve`</a><a name="fogus.reg/resolve"></a>
-``` clojure
-
-(resolve registry k)
-```
-
-Resolve key k in registry, following alias chains.
-  
-  If the value at k is itself an identifier (keyword/symbol),
-  recursively looks it up until finding a non-identifier value.
-  
-  This enables indirection: you can register ::foo as ::bar,
-  and resolving ::foo will return whatever ::bar points to.
-  
-  Args:
-    registry - A registry map or atom
-    k - An identifier (keyword or symbol)
-  
-  Returns:
-    The resolved item, or nil if k is not found or is not an identifier.
-  
-  Examples:
-    Given: {::bar "value", ::foo ::bar}
-    (resolve reg ::foo) => "value"
-    (resolve reg ::bar) => "value"
-    (resolve reg ::baz) => nil
-    (resolve reg "not-ident") => nil
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L46-L84">Source</a></sub></p>
-
-## <a name="fogus.reg/resolve!">`resolve!`</a><a name="fogus.reg/resolve!"></a>
-``` clojure
-
-(resolve! registry k)
-```
-
-Resolve key k in registry, throwing if not found.
-  
-  Like resolve, but throws an exception if k cannot be resolved.
-  Useful when a missing registry entry is an error condition.
-  
-  Args:
-    registry - A registry map or atom
-    k - An identifier (keyword or symbol)
-  
-  Returns:
-    The resolved item
-  
-  Throws:
-    ExceptionInfo if k is an identifier but cannot be resolved
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L86-L107">Source</a></sub></p>
+Register an item under key k in registry, returning a new registry.
+  If item is nil, then the mapping for k is removed from the registry.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/reg.clj#L27-L33">Source</a></sub></p>
 
 -----
 # <a name="fogus.sets">fogus.sets</a>
