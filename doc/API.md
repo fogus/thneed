@@ -43,7 +43,11 @@ Takes a function that expects a map and returns a function that
 
 (dissoc-in asc path)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/associative.clj#L3-L11">Source</a></sub></p>
+
+Dissociates a value in a nested associative structure asc, where path is a
+  sequence of keys. If the path does not resolve to a valid associative mapping
+  then this function is a noop.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/associative.clj#L3-L15">Source</a></sub></p>
 
 -----
 # <a name="fogus.config">fogus.config</a>
