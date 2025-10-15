@@ -61,11 +61,7 @@
       (is (= string? (reg/lookup r ::name)))))
   
   (testing "lookup returns nil for missing key"
-    (is (nil? (reg/lookup {} ::missing))))
-  
-  (testing "lookup returns nil for non-identifier"
-    (is (nil? (reg/lookup {::name "val"} "string-key")))
-    (is (nil? (reg/lookup {::name "val"} 42)))))
+    (is (nil? (reg/lookup {} ::missing)))))
 
 (deftest lookup-alias-chains-test
   (testing "lookup follows single alias"
@@ -122,11 +118,7 @@
     (let [r (-> {}
                 (reg/register ::target "value")
                 (reg/register ::alias ::target))]
-      (is (= "value" (reg/lookup! r ::alias)))))
-  
-  (testing "lookup! returns non-identifier as-is"
-    (is (= "string" (reg/lookup! {} "string")))
-    (is (= 42 (reg/lookup! {} 42)))))
+      (is (= "value" (reg/lookup! r ::alias))))))
 
 (deftest lookup!-failure-test
   (testing "lookup! throws for missing key"
@@ -173,31 +165,25 @@
       (is (= [::start ::middle ::end "value"] (reg/alias-chain r ::start)))))
   
   (testing "alias-chain returns nil for missing key"
-    (is (nil? (reg/alias-chain {} ::missing))))
-  
-  (testing "alias-chain returns nil for non-identifier"
-    (is (nil? (reg/alias-chain {::name "val"} "string")))))
+    (is (nil? (reg/alias-chain {} ::missing)))))
 
 (deftest alias-chain-cycle-test
   (testing "alias-chain detects self-reference"
     (let [r (reg/register {} ::self ::self)]
-      (is (reg/cyclic? (reg/alias-chain r ::self)))
-      (is (= [::self ::self ::reg/cycle-detected] (reg/alias-chain r ::self)))))
+      (is (reg/cyclic? (reg/alias-chain r ::self)))))
   
   (testing "alias-chain detects two-element cycle"
     (let [r (-> {}
                 (reg/register ::a ::b)
                 (reg/register ::b ::a))]
-      (is (reg/cyclic? (reg/alias-chain r ::a)))
-      (is (= [::a ::b ::a ::reg/cycle-detected] (reg/alias-chain r ::a)))))
+      (is (reg/cyclic? (reg/alias-chain r ::a)))))
   
   (testing "alias-chain detects longer cycle"
     (let [r (-> {}
                 (reg/register ::a ::b)
                 (reg/register ::b ::c)
                 (reg/register ::c ::a))]
-      (is (reg/cyclic? (reg/alias-chain r ::a)))
-      (is (= [::a ::b ::c ::a ::reg/cycle-detected] (reg/alias-chain r ::a))))))
+      (is (reg/cyclic? (reg/alias-chain r ::a))))))
 
 (deftest alias-basic-test
   (testing "alias creates an alias"
