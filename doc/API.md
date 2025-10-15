@@ -15,8 +15,10 @@ Various functions that modify other functions that are not
 (cps->fn f callback)
 ```
 
-Converts a function taking a callback to one that runs synchronously.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/adverbs.clj#L12-L21">Source</a></sub></p>
+Takes a function f that takes a callback and returns a new fn
+  that runs synchronously. If callback throws then the exception
+  will be propagated outward.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/adverbs.clj#L12-L23">Source</a></sub></p>
 
 ## <a name="fogus.adverbs/kwargify">`kwargify`</a><a name="fogus.adverbs/kwargify"></a>
 ``` clojure

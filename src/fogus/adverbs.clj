@@ -10,12 +10,14 @@
     (f (apply hash-map kwargs))))
 
 (defn cps->fn
-  "Converts a function taking a callback to one that runs synchronously."
+  "Takes a function f that takes a callback and returns a new fn
+  that runs synchronously. If callback throws then the exception
+  will be propagated outward."
   [f callback]
   (fn [& args]
     (let [p (promise)]
       (apply f
-             (fn [result]
-               (deliver p (callback result)))
+             (fn cb [& results]
+               (deliver p (apply callback results)))
              args)
       @p)))
