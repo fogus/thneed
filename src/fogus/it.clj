@@ -1,7 +1,6 @@
 (ns fogus.it
   "Utilities and functions pertaining to Information Theory.")
 
-
 (defn entropy
   "Calculate the information entropy (Shannon entropy) of a
   given input string."

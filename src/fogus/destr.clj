@@ -1,3 +1,0 @@
-(ns fogus.destr
-
-

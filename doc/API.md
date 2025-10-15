@@ -157,7 +157,7 @@ Utilities and functions pertaining to Information Theory.
 
 Calculate the information entropy (Shannon entropy) of a
   given input string.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/it.clj#L5-L17">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/it.clj#L4-L16">Source</a></sub></p>
 
 -----
 # <a name="fogus.java">fogus.java</a>
