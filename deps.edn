@@ -1,6 +1,6 @@
 {
  :paths ["target/classes" "src" "test"]
- :deps  {org.clojure/clojure {:mvn/version "1.12.3"}}
+ :deps  {}
 
  :aliases
  {
@@ -10,10 +10,20 @@
                        :sha "9e35c979860c75555adaff7600070c60004a0f44"}}
          :main-opts ["-m" "cognitect.test-runner"]
          :exec-fn cognitect.test-runner.api/test}
+
+  :build
+  {:deps {io.github.clojure/tools.build {:git/tag "v0.10.6" :git/sha "52cf7d6"}}
+   :ns-default build}
   
-  :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}}
-          :ns-default build}
- }
+  :deploy
+  {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
+   :exec-fn deps-deploy.deps-deploy/deploy
+   :exec-args {:installer :remote
+               :sign-releases? true
+               :sign-key-id "CBBDC7BE00954E2E3A46C80CA3994949855D2816"
+               :artifact "target/thneed.jar"}}
+
+  :dev {:extra-deps {org.clojure/clojure {:mvn/version "1.12.3"}}}}
 
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}}
