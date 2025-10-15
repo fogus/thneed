@@ -229,6 +229,16 @@ Ensures that chunked sequences are evaluated one element
 ```
 <p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/lexeme.clj#L3-L6">Source</a></sub></p>
 
+## <a name="fogus.lexeme/qualified?">`qualified?`</a><a name="fogus.lexeme/qualified?"></a>
+``` clojure
+
+(qualified? id)
+```
+
+Given an identifier id, returns true if it's namespace qualified,
+  and false otherwise.
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/lexeme.clj#L8-L12">Source</a></sub></p>
+
 ## <a name="fogus.lexeme/qualify">`qualify`</a><a name="fogus.lexeme/qualify"></a>
 ``` clojure
 
@@ -238,7 +248,7 @@ Ensures that chunked sequences are evaluated one element
 
 Qualify ident id by resolving it iff it's a symbol, using the given ns name,
   or using the current *ns*.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/lexeme.clj#L8-L20">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/lexeme.clj#L14-L26">Source</a></sub></p>
 
 ## <a name="fogus.lexeme/unqualify">`unqualify`</a><a name="fogus.lexeme/unqualify"></a>
 ``` clojure
@@ -247,7 +257,7 @@ Qualify ident id by resolving it iff it's a symbol, using the given ns name,
 ```
 
 Remove the qualifying ns from the ident.
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/lexeme.clj#L22-L29">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/lexeme.clj#L28-L35">Source</a></sub></p>
 
 -----
 # <a name="fogus.maps">fogus.maps</a>

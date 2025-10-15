@@ -5,6 +5,12 @@
       (symbol?  o)
       (string?  o)))
 
+(defn qualified?
+  "Given an identifier id, returns true if it's namespace qualified,
+  and false otherwise."
+  [id]
+  (and (ident? id) (namespace id)))
+
 (defn qualify
   "Qualify ident id by resolving it iff it's a symbol, using the given ns name,
   or using the current *ns*."
