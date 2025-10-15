@@ -14,5 +14,5 @@
                        #(identity %))]
       (is (= 6 (f 1 2 3)))))
   (testing "exception prop"
-    (let [f (a/cps->fn #(/ 10 %) #(identity %))]
-      (is (thrown? Throwable (f 0))))))
+    (let [f (a/cps->fn #(%1 (/ 10 %2)) #(identity %))]
+      (is (thrown? ArithmeticException (f 0))))))
