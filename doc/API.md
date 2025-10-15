@@ -101,14 +101,14 @@ A bunch of utilities that you might find in interesting
 Returns function that takes args and if (apply f args) is not nil, returns it.
   Otherwise throw exception per ex-dispatch - nil / string / map throw ex-info, or an
   ifn? constructs an arbitrary exceptions (and is passed the function args).
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L30-L46">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L28-L43">Source</a></sub></p>
 
 ## <a name="fogus.fun/downto">`downto`</a><a name="fogus.fun/downto"></a>
 ``` clojure
 
 (downto end start)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L22-L23">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L19-L21">Source</a></sub></p>
 
 ## <a name="fogus.fun/foldr">`foldr`</a><a name="fogus.fun/foldr"></a>
 ``` clojure
@@ -126,38 +126,19 @@ Fold right... as opposed to fold left (i.e. reduce).
 ```
 <p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L12-L13">Source</a></sub></p>
 
-## <a name="fogus.fun/parse-long">`parse-long`</a><a name="fogus.fun/parse-long"></a>
-``` clojure
-
-(parse-long %1)
-```
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L48-L48">Source</a></sub></p>
-
 ## <a name="fogus.fun/to">`to`</a><a name="fogus.fun/to"></a>
 ``` clojure
 
 (to start end)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L25-L28">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L23-L26">Source</a></sub></p>
 
 ## <a name="fogus.fun/upto">`upto`</a><a name="fogus.fun/upto"></a>
 ``` clojure
 
 (upto end start)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L19-L20">Source</a></sub></p>
-
-## <a name="fogus.fun/validate-long">`validate-long`</a><a name="fogus.fun/validate-long"></a>
-
-
-
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L50-L50">Source</a></sub></p>
-
-## <a name="fogus.fun/validate-not-even">`validate-not-even`</a><a name="fogus.fun/validate-not-even"></a>
-
-
-
-<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L54-L54">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/main/src/fogus/fun.clj#L15-L17">Source</a></sub></p>
 
 -----
 # <a name="fogus.it">fogus.it</a>
