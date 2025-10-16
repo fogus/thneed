@@ -379,6 +379,33 @@ Function.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L3-L14">Source</a></sub></p>
 
 -----
+# <a name="fogus.numbers">fogus.numbers</a>
+
+
+Utilities dealing with numbers.
+
+
+
+
+## <a name="fogus.numbers/num->roman">`num->roman`</a><a name="fogus.numbers/num->roman"></a>
+``` clojure
+
+(num->roman n)
+```
+
+Converts a positive number between 1 and 3999, inclusive to a Roman numeral string.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/numbers.clj#L25-L36">Source</a></sub></p>
+
+## <a name="fogus.numbers/parse-roman">`parse-roman`</a><a name="fogus.numbers/parse-roman"></a>
+``` clojure
+
+(parse-roman s)
+```
+
+Converts a Roman numeral string to its numeric value between 1 and 3999, inclusive.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/numbers.clj#L8-L23">Source</a></sub></p>
+
+-----
 # <a name="fogus.reg">fogus.reg</a>
 
 
