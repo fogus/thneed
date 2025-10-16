@@ -26,9 +26,16 @@
     (downto end start)))
 
 (defn !pred
-  "Returns function that takes args and if (apply f args) is not nil, returns it.
-  Otherwise throw exception per ex-dispatch - nil / string / map throw ex-info, or an
-  ifn? constructs an arbitrary exceptions (and is passed the function args)."
+  "A higher-order function that creates a validated wrapper around another function.
+  Given a predicate p, a function f, and an optional exception handler ex-dispatch,
+  a closure is returned that executes f with the provided arguments, the result is
+  checked against p. If p returns true then the closure throws according to the
+  exception dispatch. If ex-dispatch is a string or a map then that data is used to
+  form the relevant contents of an ex-info packet. If ex-dispatch is a fn then
+  the arguments given to the closure are passed to it and a Throwable is expected
+  as its return.
+  
+  If the predicate returns false, it returns the result unchanged."
   ([p f]
    (!pred p f nil))
   ([p f ex-dispatch]
