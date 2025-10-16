@@ -21,3 +21,38 @@
                (deliver p (apply callback results)))
              args)
       @p)))
+
+(defn nest
+  "Nests one function inside of another. The outer function receives the inner
+  function as its first argument, creating a nested execution context where
+  the outer potentially controls how/when the inner is invoked.
+  
+  Supports early termination: if outer returns (reduced val), execution halts."  
+  [inner outer]
+  (fn [& args]
+    (unreduced (apply outer inner args))))
+
+(defn layer
+  "Layers multiple aspects around a base function by repeatedly nesting them.
+  Aspects are applied left-to-right, with earlier aspects applying closer
+  to f.
+
+  An aspect is a higher-order function with signature (fn [next-fn & args] ...)
+  that can intercept, transform, or short-circuit execution before/after calling next-fn.
+  This provides the full range of before/after/around \"advice\" patterns:
+
+  - (fn [next-fn arg] (next-fn (before arg)))
+  - (fn [next-fn arg] (after (next-fn arg)))
+  - (fn [next-fn arg] (let [r (next-fn (before arg))] (after r)))
+  
+  Each aspect receives the nested result of all previous aspects as its first
+  argument. Aspects can return (reduced val) to short-circuit remaining layers,
+  preventing inner aspects from executing."
+  [f aspects]
+  (reduce nest f aspects))
+
+(defn apply-layering
+  "Layers a collection of aspects with a base function and immediately invokes
+  with the provided arguments. Supports early termination via (reduced val)."
+  [aspects f args]
+  (unreduced (apply (layer f aspects) args)))

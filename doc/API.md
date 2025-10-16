@@ -9,6 +9,16 @@ Various functions that modify other functions that are not
 
 
 
+## <a name="fogus.adverbs/apply-layering">`apply-layering`</a><a name="fogus.adverbs/apply-layering"></a>
+``` clojure
+
+(apply-layering aspects f args)
+```
+
+Layers a collection of aspects with a base function and immediately invokes
+  with the provided arguments. Supports early termination via (reduced val).
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/adverbs.clj#L54-L58">Source</a></sub></p>
+
 ## <a name="fogus.adverbs/cps->fn">`cps->fn`</a><a name="fogus.adverbs/cps->fn"></a>
 ``` clojure
 
@@ -29,6 +39,42 @@ Takes a function f that takes a callback and returns a new fn
 Takes a function that expects a map and returns a function that
    accepts keyword arguments on its behalf.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/adverbs.clj#L5-L10">Source</a></sub></p>
+
+## <a name="fogus.adverbs/layer">`layer`</a><a name="fogus.adverbs/layer"></a>
+``` clojure
+
+(layer f aspects)
+```
+
+Layers multiple aspects around a base function by repeatedly nesting them.
+  Aspects are applied left-to-right, with earlier aspects applying closer
+  to f.
+
+  An aspect is a higher-order function with signature (fn [next-fn & args] ...)
+  that can intercept, transform, or short-circuit execution before/after calling next-fn.
+  This provides the full range of before/after/around "advice" patterns:
+
+  - (fn [next-fn arg] (next-fn (before arg)))
+  - (fn [next-fn arg] (after (next-fn arg)))
+  - (fn [next-fn arg] (let [r (next-fn (before arg))] (after r)))
+  
+  Each aspect receives the nested result of all previous aspects as its first
+  argument. Aspects can return (reduced val) to short-circuit remaining layers,
+  preventing inner aspects from executing.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/adverbs.clj#L35-L52">Source</a></sub></p>
+
+## <a name="fogus.adverbs/nest">`nest`</a><a name="fogus.adverbs/nest"></a>
+``` clojure
+
+(nest inner outer)
+```
+
+Nests one function inside of another. The outer function receives the inner
+  function as its first argument, creating a nested execution context where
+  the outer potentially controls how/when the inner is invoked.
+  
+  Supports early termination: if outer returns (reduced val), execution halts.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/adverbs.clj#L25-L33">Source</a></sub></p>
 
 -----
 # <a name="fogus.associative">fogus.associative</a>
