@@ -27,6 +27,7 @@
           ks))
 
 (defn assoc-iff
+  "Like assoc, but only associates key-value pairs when the value is non-nil."
   ([m k v]
    (if (nil? v)
      (fogus.meta/mupdate m ::missed-keys (fnil conj #{}) k)
@@ -36,7 +37,12 @@
            (assoc-iff m k v)
            (partition 2 kvs))))
 
-(defn deep-merge [& vals]
+(defn deep-merge
+  "Recursively merges nested maps. When merging values at the same key:
+  
+  - If both values are maps, recursively merges them
+  - Otherwise, takes the rightmost value (consistent with merge)"
+  [& vals]
   (if (every? map? vals)
     (apply merge-with deep-merge vals)
     (last vals)))

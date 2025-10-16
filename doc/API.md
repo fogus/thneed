@@ -98,17 +98,27 @@ A bunch of utilities that you might find in interesting
 (!pred p f ex-dispatch)
 ```
 
-Returns function that takes args and if (apply f args) is not nil, returns it.
-  Otherwise throw exception per ex-dispatch - nil / string / map throw ex-info, or an
-  ifn? constructs an arbitrary exceptions (and is passed the function args).
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L28-L43">Source</a></sub></p>
+A higher-order function that creates a validated wrapper around another function.
+  Given a predicate p, a function f, and an optional exception handler ex-dispatch,
+  a closure is returned that executes f with the provided arguments, the result is
+  checked against p. If p returns true then the closure throws according to the
+  exception dispatch. If ex-dispatch is a string or a map then that data is used to
+  form the relevant contents of an ex-info packet. If ex-dispatch is a fn then
+  the arguments given to the closure are passed to it and a Throwable is expected
+  as its return.
+  
+  If the predicate returns false, it returns the result unchanged.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L53-L75">Source</a></sub></p>
 
 ## <a name="fogus.fun/downto">`downto`</a><a name="fogus.fun/downto"></a>
 ``` clojure
 
 (downto end start)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L19-L21">Source</a></sub></p>
+
+Generates an descending lazy sequence of numbers from start (inclusive) down to but not 
+  including end.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L39-L43">Source</a></sub></p>
 
 ## <a name="fogus.fun/foldr">`foldr`</a><a name="fogus.fun/foldr"></a>
 ``` clojure
@@ -116,29 +126,53 @@ Returns function that takes args and if (apply f args) is not nil, returns it.
 (foldr f acc [h & t :as coll])
 ```
 
-Fold right... as opposed to fold left (i.e. reduce).
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L5-L10">Source</a></sub></p>
+Right-associative fold over a collection. Unlike reduce (which is left-associative
+  and processes elements left-to-right), foldr processes elements right-to-left by
+  recursing to the end of the collection first, then applying the function f as the
+  recursion unwinds.
+
+  - `reduce` computes: f(f(f(acc, x1), x2), x3)
+  - [`foldr`](#fogus.fun/foldr) computes:  f(x1, f(x2, f(x3, acc)))
+  
+  This difference matters when:
+  1. The operation is non-associative (e.g., division, subtraction, list cons)
+  2. You need to build right-associative data structures (e.g., linked lists)
+  3. You want lazy evaluation (foldr can short-circuit on lazy sequences)
+  4. The combining function needs to see the 'rest result' before processing current
+  
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L5-L23">Source</a></sub></p>
 
 ## <a name="fogus.fun/iota">`iota`</a><a name="fogus.fun/iota"></a>
 ``` clojure
 
 (iota t nxt stop y)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L12-L13">Source</a></sub></p>
+
+Generates a lazy sequence by repeatedly applying a transformation function t to 
+  the result of a next-step function nxt, starting from initial value y, and 
+  continuing while the stop predicate is truthy. This is a generalized iteration 
+  function for creating sequences with custom stepping and transformation logic.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L25-L31">Source</a></sub></p>
 
 ## <a name="fogus.fun/to">`to`</a><a name="fogus.fun/to"></a>
 ``` clojure
 
 (to start end)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L23-L26">Source</a></sub></p>
+
+Generates a lazy sequence from start to end (exclusive), automatically choosing ascending
+  or descending direction based on the relationship between start and end values.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L45-L51">Source</a></sub></p>
 
 ## <a name="fogus.fun/upto">`upto`</a><a name="fogus.fun/upto"></a>
 ``` clojure
 
 (upto end start)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L15-L17">Source</a></sub></p>
+
+Generates an ascending lazy sequence of numbers from start (inclusive) up to but not 
+  including end.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L33-L37">Source</a></sub></p>
 
 -----
 # <a name="fogus.it">fogus.it</a>
@@ -260,14 +294,21 @@ Remove the qualifying ns from the ident.
 (assoc-iff m k v)
 (assoc-iff m k v & kvs)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L29-L37">Source</a></sub></p>
+
+Like assoc, but only associates key-value pairs when the value is non-nil.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L29-L38">Source</a></sub></p>
 
 ## <a name="fogus.maps/deep-merge">`deep-merge`</a><a name="fogus.maps/deep-merge"></a>
 ``` clojure
 
 (deep-merge & vals)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L39-L42">Source</a></sub></p>
+
+Recursively merges nested maps. When merging values at the same key:
+  
+  - If both values are maps, recursively merges them
+  - Otherwise, takes the rightmost value (consistent with merge)
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L40-L48">Source</a></sub></p>
 
 ## <a name="fogus.maps/keys-apply">`keys-apply`</a><a name="fogus.maps/keys-apply"></a>
 ``` clojure
