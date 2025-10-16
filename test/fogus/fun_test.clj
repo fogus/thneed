@@ -2,9 +2,83 @@
   (:require [clojure.test :refer :all]
             [fogus.fun :as fun]))
 
+(deftest foldr-test
+  (testing "subtraction shows left vs right associativity"
+    (is (= -6 (reduce - 0 [1 2 3])))
+    (is (= 2 (fun/foldr - 0 [1 2 3]))))
+  
+  (testing "division shows associativity difference"
+    (is (= 1/24 (reduce / 1 [2 3 4])))
+    (is (= 8/3 (fun/foldr / 1 [2 3 4]))))
+  
+  (testing "cons builds lists naturally with foldr"
+    (is (= '(1 2 3 4) (fun/foldr cons '() [1 2 3 4])))
+    (is (= [4 3 2 1] (fun/foldr #(conj %2 %1) [] [1 2 3 4]))))
+  
+  (testing "empty collection returns accumulator"
+    (is (= 42 (fun/foldr + 42 [])))
+    (is (= [] (fun/foldr cons [] []))))
+  
+  (testing "single element collection"
+    (is (= 11 (fun/foldr + 10 [1])))
+    (is (= '(1) (fun/foldr cons '() [1]))))
+  
+  (testing "associative operations match reduce"
+    (is (= (reduce + 0 [1 2 3 4 5])
+           (fun/foldr + 0 [1 2 3 4 5])))
+    (is (= (reduce * 1 [2 3 4])
+           (fun/foldr * 1 [2 3 4]))))
+  
+  (testing "building nested structure right-to-left"
+    (is (= {:value 1 :rest {:value 2 :rest {:value 3 :rest nil}}}
+           (fun/foldr (fn [x acc] {:value x :rest acc}) 
+                  nil 
+                  [1 2 3]))))
+  
+  (testing "foldr processes rightmost elements first"
+    (let [call-order (atom [])]
+      (fun/foldr (fn [x acc] 
+               (swap! call-order conj x)
+               (cons x acc))
+             []
+             [1 2 3])
+      (is (= [3 2 1] @call-order))))
+  
+  (testing "foldr vs reduce with side effects"
+    (let [reduce-order (atom [])
+          foldr-order (atom [])]
+      (reduce (fn [acc x] (swap! reduce-order conj x) (+ acc x)) 0 [1 2 3])
+      (fun/foldr (fn [x acc] (swap! foldr-order conj x) (+ x acc)) 0 [1 2 3])
+      (is (= [1 2 3] @reduce-order))
+      (is (= [3 2 1] @foldr-order)))))
+
 (deftest iota-test
-  (is (= (fun/iota identity inc #(< % 10) 1)
-         [1 2 3 4 5 6 7 8 9])))
+  (is (= [1 2 3 4 5 6 7 8 9]
+         (fun/iota identity inc #(< % 10) 1)))
+  
+  (is (= [1 2 4 8 16 32]
+         (fun/iota identity #(* 2 %) #(< % 64) 1))))
+
+(deftest upto-test
+  (is (= [1 2 3 4 5] (fun/upto 6 1)))
+  (is (= [] (fun/upto 5 5)))
+  (is (= [10] (fun/upto 11 10)))
+  (is (= [-5 -4 -3 -2 -1 0] (fun/upto 1 -5))))
+
+(deftest downto-test
+  (is (= [10 9 8 7 6] (fun/downto 5 10)))
+  (is (= [] (fun/downto 5 5)))
+  (is (= [5] (fun/downto 4 5)))
+  (is (= [3 2 1 0 -1 -2] (fun/downto -3 3))))
+
+(deftest to-test
+  (is (= [1 2 3 4 5] (fun/to 1 6)))
+  (is (= [10 9 8 7 6] (fun/to 10 5)))
+  (is (= [] (fun/to 5 5)))
+  (is (= [-3 -2 -1 0 1 2] (fun/to -3 3)))
+  (is (= [3 2 1 0 -1 -2] (fun/to 3 -3)))
+  (is (= [0] (fun/to 0 1)))
+  (is (= [1] (fun/to 1 0))))
 
 (deftest !pred-test
   (testing "base cases"
