@@ -1,5 +1,6 @@
 (ns build
-  (:require [clojure.tools.build.api :as b]))
+  (:require [clojure.tools.build.api :as b]
+            [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'me.fogus/thneed)
 (def description "An eclectic set of Clojure utilities that I've found useful enough to keep around.")
@@ -36,8 +37,16 @@
                 :version version
                 :basis (update-in @basis [:libs] dissoc 'org.clojure/clojure)
                 :src-dirs ["src"]
+                :src-pom "no-such-pom.xml" ;; prevent default pom copying
                 :pom-data (pom-template version)})
   (b/copy-dir {:src-dirs ["src" "resources"]
                :target-dir class-dir})
   (b/jar {:class-dir class-dir
           :jar-file jar-file}))
+
+(defn deploy [_]
+  (dd/deploy {:installer :remote
+              :sign-releases? true
+              :sign-key-id "CBBDC7BE00954E2E3A46C80CA3994949855D2816"
+              :artifact jar-file
+              :pom-file (b/pom-path {:class-dir class-dir :lib lib})}))
