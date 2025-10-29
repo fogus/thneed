@@ -45,4 +45,8 @@
     [n ""]
     (->> (update-keys numerals str) s/map-invert seq flatten (apply sorted-map-by >)))))
 
-
+(defn approx=
+  "Return true if the absolute value of the difference between x and y
+   is less than eps."
+  [eps x y]
+  (< (abs (- x y)) eps))

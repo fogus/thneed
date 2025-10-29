@@ -19,6 +19,12 @@
   [t speed]
   (math/round (/ t speed)))
 
+(defn derive-speed
+  "Calculates the speed scale factor required to convert an original duration ms 
+  into a target-ms duration."
+  [ms target-ms]
+  (/ ms target-ms))
+
 (defn ms->seconds 
   "Returns the number of whole seconds in a duration of milliseconds ms
   or the milliseconds in a second when no args provided."

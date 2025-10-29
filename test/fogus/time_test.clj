@@ -10,7 +10,8 @@
 
 (ns fogus.time-test
   (:require [clojure.test :refer :all]
-            [fogus.time :as time]))
+            [fogus.time :as time]
+            [fogus.numbers :as num]))
 
 (deftest scale-duration-tests
   (is (= 685714 (time/scale-duration 1200000 1.75)))
@@ -70,3 +71,13 @@
     (is (= 0 (time/duration->ms (time/ms->duration 0))))
     (is (= (time/weeks->ms 1) (time/duration->ms (time/ms->duration (time/weeks->ms 1)))))
     (is (= (time/hours->ms 7) (time/duration->ms (time/ms->duration (time/hours->ms 7)))))))
+
+(deftest derive-speed-tests
+  (is (== 2.0 (time/derive-speed 10000 5000)))
+  (is (== 0.5 (time/derive-speed 10000 20000)))
+  (is (== 1.0 (time/derive-speed 15000 15000)))
+    
+  (let [original-time 1200000
+        target-time (time/scale-duration original-time 1.75)]
+    (is (num/approx= 0.00001 1.75 (time/derive-speed original-time target-time)))))
+ 

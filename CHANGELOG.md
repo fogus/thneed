@@ -1,3 +1,6 @@
+# v1.1.5 (TBD release)
+- Addded derive-speed function to fogus.time
+- Added approx= to fogus.numbers
 # v1.1.4
 - Added duration functions to fogus.time
 # v1.1.3
