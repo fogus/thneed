@@ -44,9 +44,21 @@
   (b/jar {:class-dir class-dir
           :jar-file jar-file}))
 
-(defn deploy [_]
-  (dd/deploy {:installer :remote
-              :sign-releases? true
-              :sign-key-id "CBBDC7BE00954E2E3A46C80CA3994949855D2816"
-              :artifact jar-file
-              :pom-file (b/pom-path {:class-dir class-dir :lib lib})}))
+(defn- jar-opts [opts]
+  (println "\nVersion:" version)
+  (assoc opts
+         :lib lib   :version version
+         :jar-file  jar-file
+         :basis     (b/create-basis {})
+         :class-dir class-dir
+         :target    "target"
+         :src-dirs  ["src"]
+         :pom-data  (pom-template version)))
+
+(defn deploy "Deploy the JAR to Clojars." [opts]
+  (let [{:keys [jar-file] :as opts} (jar-opts opts)]
+    (dd/deploy {:installer :remote
+                :sign-releases? false
+                :artifact (b/resolve-path jar-file)
+                :pom-file (b/pom-path (select-keys opts [:lib :class-dir]))}))
+  opts)
