@@ -1,3 +1,13 @@
+;;
+;; Copyright (c) Michael Fogus. All rights reserved.
+;; The use and distribution terms for this software are covered by the
+;; Eclipse Public License 2.0 (https://opensource.org/license/epl-2-0)
+;; which can be found in the file LICENSE at the root of this distribution.
+;; By using this software in any fashion, you are agreeing to be bound by
+;; the terms of this license.
+;; You must not remove this notice, or any other, from this software.
+;;
+
 (ns fogus.adverbs-test
   (:require [clojure.test :refer :all]
             [fogus.adverbs :as a]))
@@ -45,8 +55,6 @@
                    (swap! call-log conj :layer3)
                    (f x))]
       (testing "full-path apply-layering calls"
-        (is (= 11
-               [0]))
         (reset! call-log [])
         (is (= :ok (a/apply-layering [layer1 layer2 layer3] (constantly :ok) [:go])))
         (is (= [:layer3 :layer2 :layer1] @call-log)))))
