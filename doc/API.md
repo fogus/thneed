@@ -433,6 +433,16 @@ Utilities dealing with numbers.
 
 
 
+## <a name="fogus.numbers/approx=">`approx=`</a><a name="fogus.numbers/approx="></a>
+``` clojure
+
+(approx= eps x y)
+```
+
+Return true if the absolute value of the difference between x and y
+   is less than eps.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/numbers.clj#L48-L52">Source</a></sub></p>
+
 ## <a name="fogus.numbers/num->roman">`num->roman`</a><a name="fogus.numbers/num->roman"></a>
 ``` clojure
 
@@ -608,7 +618,17 @@ Utilities dealing with time and durations.
 ```
 
 Returns the number of milliseconds in the given number of days.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L67-L70">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L73-L76">Source</a></sub></p>
+
+## <a name="fogus.time/derive-speed">`derive-speed`</a><a name="fogus.time/derive-speed"></a>
+``` clojure
+
+(derive-speed ms target-ms)
+```
+
+Calculates the speed scale factor required to convert an original duration ms 
+  into a target-ms duration.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L22-L26">Source</a></sub></p>
 
 ## <a name="fogus.time/duration->ms">`duration->ms`</a><a name="fogus.time/duration->ms"></a>
 ``` clojure
@@ -618,7 +638,7 @@ Returns the number of milliseconds in the given number of days.
 
 Converts a duration component map dur into a total number of milliseconds
   represented by that duration.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L94-L103">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L100-L109">Source</a></sub></p>
 
 ## <a name="fogus.time/hours->ms">`hours->ms`</a><a name="fogus.time/hours->ms"></a>
 ``` clojure
@@ -627,7 +647,7 @@ Converts a duration component map dur into a total number of milliseconds
 ```
 
 Returns the number of milliseconds in the given number of hours.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L62-L65">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L68-L71">Source</a></sub></p>
 
 ## <a name="fogus.time/minutes->ms">`minutes->ms`</a><a name="fogus.time/minutes->ms"></a>
 ``` clojure
@@ -636,7 +656,7 @@ Returns the number of milliseconds in the given number of hours.
 ```
 
 Returns the number of milliseconds in the given number of minutes.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L57-L60">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L63-L66">Source</a></sub></p>
 
 ## <a name="fogus.time/ms->days">`ms->days`</a><a name="fogus.time/ms->days"></a>
 ``` clojure
@@ -647,7 +667,7 @@ Returns the number of milliseconds in the given number of minutes.
 
 Returns the number of whole days in a duration of milliseconds ms
   or the milliseconds in a day when no args provided.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L40-L44">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L46-L50">Source</a></sub></p>
 
 ## <a name="fogus.time/ms->duration">`ms->duration`</a><a name="fogus.time/ms->duration"></a>
 ``` clojure
@@ -659,7 +679,7 @@ Given a total number of milliseconds ms, returns a map of duration components
   :weeks, :days, :hours, :minutes, :seconds, and any remaining milliseconds :ms.
   This function is calendar agnostic and therefore can only supply its coarsest
   fidelity in weeks.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L77-L92">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L83-L98">Source</a></sub></p>
 
 ## <a name="fogus.time/ms->hours">`ms->hours`</a><a name="fogus.time/ms->hours"></a>
 ``` clojure
@@ -670,7 +690,7 @@ Given a total number of milliseconds ms, returns a map of duration components
 
 Returns the number of whole hours in a duration of milliseconds ms
   or the milliseconds in an hour when no args provided.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L34-L38">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L40-L44">Source</a></sub></p>
 
 ## <a name="fogus.time/ms->minutes">`ms->minutes`</a><a name="fogus.time/ms->minutes"></a>
 ``` clojure
@@ -681,7 +701,7 @@ Returns the number of whole hours in a duration of milliseconds ms
 
 Returns the number of whole minutes in a duration of milliseconds ms
   or the milliseconds in a minute when no args provided.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L28-L32">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L34-L38">Source</a></sub></p>
 
 ## <a name="fogus.time/ms->seconds">`ms->seconds`</a><a name="fogus.time/ms->seconds"></a>
 ``` clojure
@@ -692,7 +712,7 @@ Returns the number of whole minutes in a duration of milliseconds ms
 
 Returns the number of whole seconds in a duration of milliseconds ms
   or the milliseconds in a second when no args provided.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L22-L26">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L28-L32">Source</a></sub></p>
 
 ## <a name="fogus.time/ms->weeks">`ms->weeks`</a><a name="fogus.time/ms->weeks"></a>
 ``` clojure
@@ -703,7 +723,7 @@ Returns the number of whole seconds in a duration of milliseconds ms
 
 Returns the number of whole weeks in a duration of milliseconds ms
   or the milliseconds in a week when no args provided.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L46-L50">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L52-L56">Source</a></sub></p>
 
 ## <a name="fogus.time/scale-duration">`scale-duration`</a><a name="fogus.time/scale-duration"></a>
 ``` clojure
@@ -723,7 +743,7 @@ Given a duration t in milliseconds and a scale factor speed, returns a scaled
 ```
 
 Returns the number of milliseconds in the given number of seconds.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L52-L55">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L58-L61">Source</a></sub></p>
 
 ## <a name="fogus.time/weeks->ms">`weeks->ms`</a><a name="fogus.time/weeks->ms"></a>
 ``` clojure
@@ -732,4 +752,30 @@ Returns the number of milliseconds in the given number of seconds.
 ```
 
 Returns the number of milliseconds in the given number of weeks.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L72-L75">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L78-L81">Source</a></sub></p>
+
+-----
+# <a name="fogus.util">fogus.util</a>
+
+
+
+
+
+
+## <a name="fogus.util/parse-kw-chain">`parse-kw-chain`</a><a name="fogus.util/parse-kw-chain"></a>
+``` clojure
+
+(parse-kw-chain s)
+```
+
+Parses a string of concatenated keywords into a vector.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L13-L16">Source</a></sub></p>
+
+## <a name="fogus.util/parse-path">`parse-path`</a><a name="fogus.util/parse-path"></a>
+``` clojure
+
+(parse-path s)
+```
+
+Parses a comma-delimited path string into a vector of path elements.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L18-L22">Source</a></sub></p>
