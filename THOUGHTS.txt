@@ -1,0 +1,74 @@
+-*- mode: org -*-
+
+* Thoughts
+** Collections
+*** TODO Add transducer-friendly versions of existing functions
+   - Many functions like foldr, iota could benefit from transducer variants
+*** TODO fogus.sets
+   - Power set generation
+   - Cartesian product of multiple sets
+*** TODO fogus.vectors
+   - partition-by-index, rotate
+** Associative
+*** TODO Beyond deep-merge
+   - merge-with-path (custom merge based on key path)
+   - merge-distinct (only merge non-overlapping keys)
+   - merge-defaults (only fill in missing keys)
+** FP
+*** TODO fogus.fun with more combinators
+** Strings
+*** TODO fogus.strings
+   - kebab-case, snake-case, camelCase?
+   - templating
+   - string truncation with ellipsis
+   - Levenshtein distance
+** Asynchronous and Concurrency Utilities
+*** TODO fogus.async
+   - Virtual thread utils
+** Interop
+*** TODO fogus.java
+   - Builder pattern helpers
+** Registry
+*** TODO registry query / dump
+   - Search by predicate
+   - List all aliases
+   - Dependency graph of aliases
+   - Export/import registry
+*** TODO registry hooks
+   - Pre-register validation
+   - Post-register notifications
+   - Change tracking/auditing
+
+** Math
+*** TODO fogus.numbers
+   - Statistical functions (mean, median, std-dev)
+*** TODO linear algebra
+   - Vector operations (dot product, magnitude)
+   - Simple matrix operations
+
+** Lexemes
+*** TODO L@@k CLIPS
+
+** Error
+*** TODO fogus.errors
+   - fail on reflection?
+** Spec
+   - fogus.spec?
+** Testing
+*** TODO fogus.test
+   - ???
+*** TODO Add test organization utilities
+   - Test grouping/tagging
+   - Test fixture helpers
+   - Test execution timing
+
+** Docs
+*** TODO Where to put usage examples?
+   - REPL session transcripts
+   - Jupyter notebook examples
+   - Interactive documentation site
+*** TODO Tutorial
+*** TODO property tests
+*** TODO design rationale
+   - Explain why functions exist (what problem they solve)
+*** TODO cheat sheet
