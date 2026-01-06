@@ -378,6 +378,25 @@ Recursively merges nested maps. When merging values at the same key:
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L22-L26">Source</a></sub></p>
 
 -----
+# <a name="fogus.math">fogus.math</a>
+
+
+Math utilities
+
+
+
+
+## <a name="fogus.math/log-distance">`log-distance`</a><a name="fogus.math/log-distance"></a>
+``` clojure
+
+(log-distance a b)
+```
+
+Returns the base-10 logarithmic distance between two positive numbers.
+   The result is independent of argument order.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/math.clj#L15-L22">Source</a></sub></p>
+
+-----
 # <a name="fogus.meta">fogus.meta</a>
 
 
