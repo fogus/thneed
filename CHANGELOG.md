@@ -1,5 +1,5 @@
-# v1.1.6 (unreleased)
-- Added log-distance to new ns fogus.math
+# v1.1.6
+- Added log-distance, order-apart?, and within-order? to new fogus.math ns
 # v1.1.5
 - Addded derive-speed function to fogus.time
 - Added approx= to fogus.numbers

@@ -386,15 +386,35 @@ Math utilities
 
 
 
-## <a name="fogus.math/log-distance">`log-distance`</a><a name="fogus.math/log-distance"></a>
+## <a name="fogus.math/order-apart?">`order-apart?`</a><a name="fogus.math/order-apart?"></a>
 ``` clojure
 
-(log-distance a b)
+(order-apart? a b)
+(order-apart? n a b)
 ```
 
-Returns the base-10 logarithmic distance between two positive numbers.
-   The result is independent of argument order.
+Returns true if a and b differ by _at least_ n orders of magnitude.
+   With two arguments, defaults to 1.0 order of magnitude.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/math.clj#L24-L31">Source</a></sub></p>
+
+## <a name="fogus.math/order-distance">`order-distance`</a><a name="fogus.math/order-distance"></a>
+``` clojure
+
+(order-distance a b)
+```
+
+Returns the base-10 logarithmic (order of magnititude) distance between
+  two positive numbers. The result is independent of argument order.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/math.clj#L15-L22">Source</a></sub></p>
+
+## <a name="fogus.math/within-order?">`within-order?`</a><a name="fogus.math/within-order?"></a>
+``` clojure
+
+(within-order? a b)
+```
+
+Returns true if a and b are _within_ the same order of magnitude.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/math.clj#L33-L37">Source</a></sub></p>
 
 -----
 # <a name="fogus.meta">fogus.meta</a>
