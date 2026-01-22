@@ -1,3 +1,5 @@
+# v1.1.7 (unreleased)
+- 
 # v1.1.6
 - Added log-distance, order-apart?, and within-order? to new fogus.math ns
 # v1.1.5
