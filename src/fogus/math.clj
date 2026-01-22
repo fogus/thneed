@@ -12,11 +12,26 @@
   "Math utilities"
   (:require clojure.math))
 
-(defn log-distance
-  "Returns the base-10 logarithmic distance between two positive numbers.
-   The result is independent of argument order."
+(defn order-distance
+  "Returns the base-10 logarithmic (order of magnititude) distance between
+  two positive numbers. The result is independent of argument order."
   [a b]
   {:pre [(pos? a) (pos? b)]}
   (let [hi (max a b)
         lo (min a b)]
     (clojure.math/log10 (/ hi lo))))
+
+(defn order-apart?
+  "Returns true if a and b differ by _at least_ n orders of magnitude.
+   With two arguments, defaults to 1.0 order of magnitude."
+  ([a b]
+   (order-apart? 1.0 a b))
+  ([n a b]
+   {:pre [(pos? a) (pos? b) (>= n 0)]}
+   (>= (order-distance a b) n)))
+
+(defn within-order?
+  "Returns true if a and b are _within_ the same order of magnitude."
+  [a b]
+  {:pre [(pos? a) (pos? b)]}
+  (< (order-distance a b) 1))
