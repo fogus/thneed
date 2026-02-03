@@ -248,19 +248,29 @@ Java host utilities.
 
 
 
+## <a name="fogus.java/array-dim">`array-dim`</a><a name="fogus.java/array-dim"></a>
+``` clojure
+
+(array-dim mc)
+```
+
+Expects an array instance, or an array class and returns the
+  dimensionality of the argument.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L46-L54">Source</a></sub></p>
+
 ## <a name="fogus.java/build-system-info-map">`build-system-info-map`</a><a name="fogus.java/build-system-info-map"></a>
 ``` clojure
 
 (build-system-info-map)
 (build-system-info-map base)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L22-L42">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L24-L44">Source</a></sub></p>
 
 ## <a name="fogus.java/virtual-threads-available?">`virtual-threads-available?`</a><a name="fogus.java/virtual-threads-available?"></a>
 
 
 
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L15-L20">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L17-L22">Source</a></sub></p>
 
 -----
 # <a name="fogus.laziness">fogus.laziness</a>

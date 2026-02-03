@@ -12,6 +12,8 @@
   "Java host utilities."
   (:require fogus.maps))
 
+(set! *warn-on-reflection* true)
+
 (def virtual-threads-available?
   (try
     (Class/forName "java.lang.Thread$Builder$OfVirtual")
@@ -40,4 +42,14 @@
      :java/awt.graphicsenv (System/getProperty "java.awt.graphicsenv")
      :directory/pwd        (.getAbsolutePath (java.io.File. "."))
      :java/vthreads?       virtual-threads-available?)))
+
+(defn array-dim
+  "Expects an array instance, or an array class and returns the
+  dimensionality of the argument."
+  [mc]
+  (let [ac (if (class? mc) mc (class mc))]
+    (loop [dim 0, ^Class ct ac]
+      (if (and ct (.isArray ct))
+        (recur (inc dim) (.getComponentType ct))
+        dim))))
 

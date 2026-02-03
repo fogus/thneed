@@ -1,4 +1,5 @@
 # v1.1.7 (unreleased)
+- Added fogus.java/array-dim to calculate the dimensionality of an array object or class
 - 
 # v1.1.6
 - Added log-distance, order-apart?, and within-order? to new fogus.math ns
