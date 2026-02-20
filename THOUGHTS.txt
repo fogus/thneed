@@ -16,17 +16,22 @@
    - merge-defaults (only fill in missing keys)
 ** FP
 *** TODO fogus.fun with more combinators
-** Strings
+** Strings / Text
 *** TODO fogus.strings
    - kebab-case, snake-case, camelCase?
    - templating
    - string truncation with ellipsis
    - Levenshtein distance
+*** TODO fogus.text
+   - DONE (v1.1.7) docstring markdown variant
+   - gore-mode
+
 ** Asynchronous and Concurrency Utilities
 *** TODO fogus.async
    - Virtual thread utils
 ** Interop
 *** TODO fogus.java
+   - DONE (v1.1.7) array dim caculation
    - Builder pattern helpers
 ** Registry
 *** TODO registry query / dump
