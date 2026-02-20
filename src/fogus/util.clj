@@ -10,6 +10,11 @@
 
 (ns fogus.util)
 
+(def html-escapes
+  {\& "&amp;"
+   \< "&lt;"
+   \> "&gt;"})
+
 (defn parse-kw-chain
   "Parses a string of concatenated keywords into a vector."
   [s]

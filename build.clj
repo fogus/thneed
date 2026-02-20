@@ -1,6 +1,7 @@
 (ns build
   (:require [clojure.tools.build.api :as b]
-            [deps-deploy.deps-deploy :as dd]))
+            [deps-deploy.deps-deploy :as dd]
+            [fogus.text :as text]))
 
 (def lib 'me.fogus/thneed)
 (def description "An eclectic set of Clojure utilities that I've found useful enough to keep around.")
@@ -54,6 +55,23 @@
          :target    "target"
          :src-dirs  ["src"]
          :pom-data  (pom-template version)))
+
+(defn docstring2html
+  "Resolves the var named by `:var` in opts, extracts its docstring,
+  converts it to HTML via fogus.text/md, and writes VAR.html where
+  VAR is the name part of the var symbol. Overwrites any existing file.
+
+  You can run via:
+
+      clj -T:build docstring2html :var \"fogus.text/md\"
+  "
+  [{var-sym :var :as opts}]
+  (let [resolved (requiring-resolve var-sym)
+        doc      (:doc (meta resolved))
+        html     (text/md doc)
+        fname    (str (name var-sym) ".html")]
+    (spit fname html)
+    opts))
 
 (defn deploy "Deploy the JAR to Clojars." [opts]
   (let [{:keys [jar-file] :as opts} (jar-opts opts)]

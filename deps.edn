@@ -11,7 +11,8 @@
          :exec-fn cognitect.test-runner.api/test}
 
   :build
-  {:deps {io.github.clojure/tools.build {:mvn/version "0.10.10"}
+  {:extra-paths ["src"]
+   :deps {io.github.clojure/tools.build {:mvn/version "0.10.10"}
           slipset/deps-deploy {:mvn/version "RELEASE"}}
    :ns-default build}
 
