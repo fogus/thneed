@@ -5,7 +5,6 @@
 
 (def lib 'me.fogus/thneed)
 (def description "An eclectic set of Clojure utilities that I've found useful enough to keep around.")
-;;(def version (format "0.0.%s" (b/git-count-revs nil)))
 (def version "1.1.7") ;; unreleased
 (def class-dir "target/classes")
 (def jar-file (format "target/%s.jar" (name lib)))

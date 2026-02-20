@@ -1,6 +1,8 @@
-# v1.1.7 (unreleased)
+# v1.1.8 (unreleased)
+- TBD
+# v1.1.7
 - Added fogus.java/array-dim to calculate the dimensionality of an array object or class
-- 
+- Added fogus.text/md that accepts a very small subset of Markdown
 # v1.1.6
 - Added log-distance, order-apart?, and within-order? to new fogus.math ns
 # v1.1.5
