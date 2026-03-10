@@ -56,18 +56,24 @@
          :pom-data  (pom-template version)))
 
 (defn docstring2html
-  "Resolves the var named by `:var` in opts, extracts its docstring,
-  converts it to HTML via fogus.text/md, and writes VAR.html where
-  VAR is the name part of the var symbol. Overwrites any existing file.
+  "Resolves the var named by ``:var`` in opts, extracts its docstring,
+  converts it to HTML via ``:format``, and writes VAR.html where
+  VAR is the name part of the var symbol. If no format tag is provided
+  then both md and org will be run against the docstring.
+
+  Overwrites any existing file.
 
   You can run via:
 
-      clj -T:build docstring2html :var \"fogus.text/md\"
+      clj -T:build docstring2html :var \"QUALIFIED-VAR\" :format :md|:org
   "
-  [{var-sym :var :as opts}]
+  [{var-sym :var, fmt :format, :as opts}]
   (let [resolved (requiring-resolve var-sym)
         doc      (:doc (meta resolved))
-        html     (text/md doc)
+        html     (case fmt
+                   :md  (text/md doc)
+                   :org (text/org doc)
+                   (-> doc text/md text/org))
         fname    (str (name var-sym) ".html")]
     (spit fname html)
     opts))

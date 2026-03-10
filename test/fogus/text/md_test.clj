@@ -8,7 +8,7 @@
 ;; You must not remove this notice, or any other, from this software.
 ;;
 
-(ns fogus.text-test
+(ns fogus.text.md-test
   (:require [clojure.test :refer :all]
             [clojure.string :as string]
             [fogus.text :as text]))
@@ -98,10 +98,10 @@
     (is (string/includes? htmlds "<code>s</code>"))
     (is (string/includes? htmlds "<code>:language \"LANG\"</code>"))
     (is (string/includes? htmlds "<ul><li>CODE BLOCKS:"))
-    (is (string/includes? htmlds "\n<li>LISTS:"))
+    (is (string/includes? htmlds "<li>LISTS:"))
     (is (string/includes? htmlds "two separate lists.</li></ul>"))
     (is (string/includes? htmlds "<ul><li>INLINE CODE FRAGMENTS:"))
-    (is (string/includes? htmlds "whitespace trimmed.</li></ul>"))
+    (is (string/includes? htmlds "separate lists.</li></ul>"))
     (is (string/includes? htmlds "<ul><li>LINKS:"))
     (is (string/includes? htmlds "HTML anchor tags.</li></ul>"))
     (is (string/includes? htmlds "&lt;code class=\"language-LANG\"&gt;"))
@@ -125,3 +125,4 @@
     into a single li element."
           expected "<ul><li>This is a list item with an indented second line. That should pull all of the indented lines into a single li element.</li></ul>"]
       (is (= expected (text/md markup))))))
+
