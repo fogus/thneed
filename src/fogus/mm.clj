@@ -8,7 +8,8 @@
 ;; You must not remove this notice, or any other, from this software.
 ;;
 
-(ns fogus.mm)
+(ns fogus.mm
+  "Utilities for working with multimethods. WiP")
 
 (defmacro defmethod-explicit
   [multifn dispatch-val & fn-tail]

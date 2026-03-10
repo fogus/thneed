@@ -9,6 +9,7 @@
 ;;
 
 (ns fogus.shell
+  "Shell utilities. WiP"
   (:require clojure.java.shell)
   (:import
     [java.io InputStream StringWriter File]

@@ -450,7 +450,7 @@ Returns true if a and b are _within_ the same order of magnitude.
 # <a name="fogus.meta">fogus.meta</a>
 
 
-Utilities dealing with metadata.
+Utilities dealing with metadata. WiP
 
 
 
@@ -473,6 +473,7 @@ Utilities dealing with metadata.
 # <a name="fogus.mm">fogus.mm</a>
 
 
+Utilities for working with multimethods. WiP
 
 
 
@@ -483,7 +484,7 @@ Utilities dealing with metadata.
 (defmethod-anaphoric multifn dispatch-val & fn-tail)
 ```
 Function.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L26-L32">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L27-L33">Source</a></sub></p>
 
 ## <a name="fogus.mm/defmethod-explicit">`defmethod-explicit`</a><a name="fogus.mm/defmethod-explicit"></a>
 ``` clojure
@@ -491,7 +492,7 @@ Function.
 (defmethod-explicit multifn dispatch-val & fn-tail)
 ```
 Function.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L13-L24">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L14-L25">Source</a></sub></p>
 
 -----
 # <a name="fogus.numbers">fogus.numbers</a>
@@ -654,6 +655,7 @@ Takes a seq of sets and returns a seq of the mutually different sets. That is, t
 # <a name="fogus.shell">fogus.shell</a>
 
 
+Shell utilities. WiP
 
 
 
@@ -663,13 +665,13 @@ Takes a seq of sets and returns a seq of the mutually different sets. That is, t
 
 (go & args)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/shell.clj#L20-L26">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/shell.clj#L21-L27">Source</a></sub></p>
 
 ## <a name="fogus.shell/parse-args">`parse-args`</a><a name="fogus.shell/parse-args"></a>
 
 
 
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/shell.clj#L18-L18">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/shell.clj#L19-L19">Source</a></sub></p>
 
 -----
 # <a name="fogus.text">fogus.text</a>
@@ -903,7 +905,7 @@ Returns the number of whole weeks in a duration of milliseconds ms
 
 Given a duration t in milliseconds and a scale factor speed, returns a scaled
   duration in milliseconds, rounded to the nearest millisecond per
-  #'clojure.math/round.
+  clojure.math/round.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/time.clj#L15-L20">Source</a></sub></p>
 
 ## <a name="fogus.time/seconds->ms">`seconds->ms`</a><a name="fogus.time/seconds->ms"></a>
@@ -936,7 +938,9 @@ Returns the number of milliseconds in the given number of weeks.
 
 
 
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L13-L16">Source</a></sub></p>
+
+A map of a minimal number of HTML escapes for brackets and ampersands.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L13-L17">Source</a></sub></p>
 
 ## <a name="fogus.util/parse-kw-chain">`parse-kw-chain`</a><a name="fogus.util/parse-kw-chain"></a>
 ``` clojure
@@ -945,7 +949,7 @@ Returns the number of milliseconds in the given number of weeks.
 ```
 
 Parses a string of concatenated keywords into a vector.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L18-L21">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L19-L22">Source</a></sub></p>
 
 ## <a name="fogus.util/parse-path">`parse-path`</a><a name="fogus.util/parse-path"></a>
 ``` clojure
@@ -954,4 +958,4 @@ Parses a string of concatenated keywords into a vector.
 ```
 
 Parses a comma-delimited path string into a vector of path elements.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L23-L27">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L24-L28">Source</a></sub></p>

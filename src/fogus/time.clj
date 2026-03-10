@@ -15,7 +15,7 @@
 (defn scale-duration
   "Given a duration t in milliseconds and a scale factor speed, returns a scaled
   duration in milliseconds, rounded to the nearest millisecond per
-  #'clojure.math/round."
+  clojure.math/round."
   [t speed]
   (math/round (/ t speed)))
 

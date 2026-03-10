@@ -10,7 +10,8 @@
 
 (ns fogus.util)
 
-(def html-escapes
+(def ^{:doc "A map of a minimal number of HTML escapes for brackets and ampersands."}
+  html-escapes
   {\& "&amp;"
    \< "&lt;"
    \> "&gt;"})

@@ -9,7 +9,7 @@
 ;;
 
 (ns fogus.meta
-  "Utilities dealing with metadata.")
+  "Utilities dealing with metadata. WiP")
 
 ;; TODO combinator for below
 
