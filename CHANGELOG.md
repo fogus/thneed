@@ -1,5 +1,7 @@
-# v1.1.8 (unreleased)
+# v1.1.9 (unreleased)
 - TBD
+# v1.1.8
+- Added fogus.text/org that accepts a very small subset of org-mode
 # v1.1.7
 - Added fogus.java/array-dim to calculate the dimensionality of an array object or class
 - Added fogus.text/md that accepts a very small subset of Markdown

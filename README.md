@@ -6,11 +6,11 @@ Clojure functions that I've found useful.
 
 ### deps.edn
 
-    me.fogus/thneed {:mvn/version "1.1.7"}
+    me.fogus/thneed {:mvn/version "1.1.8"}
 
 OR
 
-    io.github.fogus/thneed {:git/tag "v1.1.7" :git/sha "..."}
+    io.github.fogus/thneed {:git/tag "v1.1.8" :git/sha "..."}
 
 You can find the SHAs on the [Github tags page](https://github.com/fogus/thneed/tags).
 
@@ -18,7 +18,7 @@ You can find the SHAs on the [Github tags page](https://github.com/fogus/thneed/
 
 Modify your [Leiningen](http://github.com/technomancy/leiningen) dependencies to include:
 
-    :dependencies [[me.fogus/thneed "1.1.7"] ...]
+    :dependencies [[me.fogus/thneed "1.1.8"] ...]
 
 ### Maven
 
@@ -27,7 +27,7 @@ Add the following to your `pom.xml` file:
     <dependency>
       <groupId>me.fogus</groupId>
       <artifactId>thneed</artifactId>
-      <version>1.1.7</version>
+      <version>1.1.8</version>
     </dependency>
 
 ## Dev
