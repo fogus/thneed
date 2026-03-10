@@ -10,7 +10,10 @@
 
 (ns fogus.lexeme)
 
-(defn lexeme? [o]
+(defn lexeme?
+  "A predicate that checks if the argument is one of the lexical types:
+  strings, keywords, or symbols."
+  [o]
   (or (keyword? o)
       (symbol?  o)
       (string?  o)))

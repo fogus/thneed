@@ -14,7 +14,7 @@
 
 (set! *warn-on-reflection* true)
 
-(def ^{:docstring "A boolean indicating if virtual threads are available at runtime."}
+(def ^{:doc "A boolean indicating if virtual threads are available at runtime."}
   virtual-threads-available?
   (try
     (Class/forName "java.lang.Thread$Builder$OfVirtual")
@@ -48,8 +48,8 @@
      :java/vthreads?       virtual-threads-available?)))
 
 (defn array-dim
-  "Expects an array instance, or an array class and returns the
-  dimensionality of the argument."
+  "Expects an array instance, or an array class mc and returns its
+  dimensionality."
   [mc]
   (let [ac (if (class? mc) mc (class mc))]
     (loop [dim 0, ^Class ct ac]

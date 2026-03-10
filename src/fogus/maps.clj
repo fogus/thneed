@@ -11,21 +11,24 @@
 (ns fogus.maps
   (:require fogus.meta))
 
-(defn keys-apply [m ks f]
+(defn keys-apply
   "Takes a function, a set of keys, and a map and applies
-   the function to the map on the given keys.  A new map of
-   the results of the function applied to the keyed entries
-   is returned."
+  the function to the map on the given keys.  A new map of
+  the results of the function applied to the keyed entries
+  is returned."
+  [m ks f]
   (let [only (select-keys m ks)]
     (zipmap (keys only) (map f (vals only)))))
 
-(defn manip-map [m ks f]
+(defn manip-map
   "Takes a function, a set of keys, and a map and applies the function
-   to the map on the given keys.  A modified version of the original map
-   is returned with the results of the function applied to each keyed entry."
+  to the map on the given keys.  A modified version of the original map
+  is returned with the results of the function applied to each keyed entry."
+  [m ks f]
   (conj m (keys-apply m ks f)))
 
-(defn manip-keys
+(defn ^:deprecated manip-keys
+  "DEPRECATED: use clojure.core/update-keys instead."
   [m ks f]
   (reduce (fn [acc key]
             (if-let [v (get m key)]

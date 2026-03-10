@@ -254,8 +254,8 @@ Java host utilities.
 (array-dim mc)
 ```
 
-Expects an array instance, or an array class and returns the
-  dimensionality of the argument.
+Expects an array instance, or an array class mc and returns its
+  dimensionality.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L50-L58">Source</a></sub></p>
 
 ## <a name="fogus.java/build-system-info-map">`build-system-info-map`</a><a name="fogus.java/build-system-info-map"></a>
@@ -274,6 +274,8 @@ Returns a map containing mappings for various useful JVM sysprops.
 
 
 
+
+A boolean indicating if virtual threads are available at runtime.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L17-L23">Source</a></sub></p>
 
 -----
@@ -308,7 +310,10 @@ Ensures that chunked sequences are evaluated one element
 
 (lexeme? o)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L13-L16">Source</a></sub></p>
+
+A predicate that checks if the argument is one of the lexical types:
+  strings, keywords, or symbols.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L13-L19">Source</a></sub></p>
 
 ## <a name="fogus.lexeme/qualified?">`qualified?`</a><a name="fogus.lexeme/qualified?"></a>
 ``` clojure
@@ -318,7 +323,7 @@ Ensures that chunked sequences are evaluated one element
 
 Given an identifier id, returns true if it's namespace qualified,
   and false otherwise.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L18-L22">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L21-L25">Source</a></sub></p>
 
 ## <a name="fogus.lexeme/qualify">`qualify`</a><a name="fogus.lexeme/qualify"></a>
 ``` clojure
@@ -329,7 +334,7 @@ Given an identifier id, returns true if it's namespace qualified,
 
 Qualify ident id by resolving it iff it's a symbol, using the given ns name,
   or using the current *ns*.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L24-L36">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L27-L39">Source</a></sub></p>
 
 ## <a name="fogus.lexeme/unqualify">`unqualify`</a><a name="fogus.lexeme/unqualify"></a>
 ``` clojure
@@ -338,7 +343,7 @@ Qualify ident id by resolving it iff it's a symbol, using the given ns name,
 ```
 
 Remove the qualifying ns from the ident.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L38-L45">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L41-L48">Source</a></sub></p>
 
 -----
 # <a name="fogus.maps">fogus.maps</a>
@@ -356,7 +361,7 @@ Remove the qualifying ns from the ident.
 ```
 
 Like assoc, but only associates key-value pairs when the value is non-nil.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L39-L48">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L42-L51">Source</a></sub></p>
 
 ## <a name="fogus.maps/deep-merge">`deep-merge`</a><a name="fogus.maps/deep-merge"></a>
 ``` clojure
@@ -368,28 +373,39 @@ Recursively merges nested maps. When merging values at the same key:
   
   - If both values are maps, recursively merges them
   - Otherwise, takes the rightmost value (consistent with merge)
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L50-L58">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L53-L61">Source</a></sub></p>
 
 ## <a name="fogus.maps/keys-apply">`keys-apply`</a><a name="fogus.maps/keys-apply"></a>
 ``` clojure
 
 (keys-apply m ks f)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L14-L20">Source</a></sub></p>
+
+Takes a function, a set of keys, and a map and applies
+  the function to the map on the given keys.  A new map of
+  the results of the function applied to the keyed entries
+  is returned.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L14-L21">Source</a></sub></p>
 
 ## <a name="fogus.maps/manip-keys">`manip-keys`</a><a name="fogus.maps/manip-keys"></a>
 ``` clojure
 
 (manip-keys m ks f)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L28-L37">Source</a></sub></p>
+
+DEPRECATED: use clojure.core/update-keys instead.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L30-L40">Source</a></sub></p>
 
 ## <a name="fogus.maps/manip-map">`manip-map`</a><a name="fogus.maps/manip-map"></a>
 ``` clojure
 
 (manip-map m ks f)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L22-L26">Source</a></sub></p>
+
+Takes a function, a set of keys, and a map and applies the function
+  to the map on the given keys.  A modified version of the original map
+  is returned with the results of the function applied to each keyed entry.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L23-L28">Source</a></sub></p>
 
 -----
 # <a name="fogus.math">fogus.math</a>
