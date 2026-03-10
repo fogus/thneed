@@ -14,7 +14,8 @@
 
 (set! *warn-on-reflection* true)
 
-(def virtual-threads-available?
+(def ^{:docstring "A boolean indicating if virtual threads are available at runtime."}
+  virtual-threads-available?
   (try
     (Class/forName "java.lang.Thread$Builder$OfVirtual")
     true
@@ -22,6 +23,9 @@
       false)))
 
 (defn build-system-info-map
+  "Returns a map containing mappings for various useful JVM sysprops.
+  If a map base is provided then the sysprop mappings will be merged
+  into it."
   ([] (build-system-info-map {}))
   ([base]
    (fogus.maps/assoc-iff base

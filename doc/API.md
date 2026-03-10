@@ -256,7 +256,7 @@ Java host utilities.
 
 Expects an array instance, or an array class and returns the
   dimensionality of the argument.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L46-L54">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L50-L58">Source</a></sub></p>
 
 ## <a name="fogus.java/build-system-info-map">`build-system-info-map`</a><a name="fogus.java/build-system-info-map"></a>
 ``` clojure
@@ -264,13 +264,17 @@ Expects an array instance, or an array class and returns the
 (build-system-info-map)
 (build-system-info-map base)
 ```
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L24-L44">Source</a></sub></p>
+
+Returns a map containing mappings for various useful JVM sysprops.
+  If a map base is provided then the sysprop mappings will be merged
+  into it.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L25-L48">Source</a></sub></p>
 
 ## <a name="fogus.java/virtual-threads-available?">`virtual-threads-available?`</a><a name="fogus.java/virtual-threads-available?"></a>
 
 
 
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L17-L22">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/java.clj#L17-L23">Source</a></sub></p>
 
 -----
 # <a name="fogus.laziness">fogus.laziness</a>
