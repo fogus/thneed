@@ -12,6 +12,14 @@
   "A bunch of utilities that you might find in interesting
   functional and/or function-level languages.")
 
+(defn- fold-right [f acc [h & t :as coll]]
+  (if (seq coll)
+    (let [inner (fold-right f acc t)]
+      (if (reduced? inner)
+        inner
+        (f h inner)))
+    acc))
+
 (defn foldr
   "Right-associative fold over a collection. Unlike reduce (which is left-associative
   and processes elements left-to-right), foldr processes elements right-to-left by
@@ -26,11 +34,14 @@
   2. You need to build right-associative data structures (e.g., linked lists)
   3. You want lazy evaluation (foldr can short-circuit on lazy sequences)
   4. The combining function needs to see the 'rest result' before processing current
+
+  The function f may return a `reduced` value to terminate the fold early.
   "
-  [f acc [h & t :as coll]]
-  (if (seq coll)
-    (f h (foldr f acc t))
-    acc))
+  [f acc coll]
+  (let [result (fold-right f acc coll)]
+    (if (reduced? result)
+      @result
+      result)))
 
 (defn iota
   "Generates a lazy sequence by repeatedly applying a transformation function t to 

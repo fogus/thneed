@@ -16,56 +16,97 @@
   (testing "subtraction shows left vs right associativity"
     (is (= -6 (reduce - 0 [1 2 3])))
     (is (= 2 (fun/foldr - 0 [1 2 3]))))
-  
+
   (testing "division shows associativity difference"
     (is (= 1/24 (reduce / 1 [2 3 4])))
     (is (= 8/3 (fun/foldr / 1 [2 3 4]))))
-  
+
   (testing "cons builds lists naturally with foldr"
     (is (= '(1 2 3 4) (fun/foldr cons '() [1 2 3 4])))
     (is (= [4 3 2 1] (fun/foldr #(conj %2 %1) [] [1 2 3 4]))))
-  
+
   (testing "empty collection returns accumulator"
     (is (= 42 (fun/foldr + 42 [])))
     (is (= [] (fun/foldr cons [] []))))
-  
+
   (testing "single element collection"
     (is (= 11 (fun/foldr + 10 [1])))
     (is (= '(1) (fun/foldr cons '() [1]))))
-  
+
   (testing "associative operations match reduce"
     (is (= (reduce + 0 [1 2 3 4 5])
            (fun/foldr + 0 [1 2 3 4 5])))
     (is (= (reduce * 1 [2 3 4])
            (fun/foldr * 1 [2 3 4]))))
-  
+
   (testing "building nested structure right-to-left"
     (is (= {:value 1 :rest {:value 2 :rest {:value 3 :rest nil}}}
-           (fun/foldr (fn [x acc] {:value x :rest acc}) 
-                  nil 
-                  [1 2 3]))))
-  
+           (fun/foldr (fn [x acc] {:value x :rest acc})
+                      nil
+                      [1 2 3]))))
+
   (testing "foldr processes rightmost elements first"
     (let [call-order (atom [])]
-      (fun/foldr (fn [x acc] 
-               (swap! call-order conj x)
-               (cons x acc))
-             []
-             [1 2 3])
+      (fun/foldr (fn [x acc]
+                   (swap! call-order conj x)
+                   (cons x acc))
+                 []
+                 [1 2 3])
       (is (= [3 2 1] @call-order))))
-  
+
   (testing "foldr vs reduce with side effects"
     (let [reduce-order (atom [])
           foldr-order (atom [])]
       (reduce (fn [acc x] (swap! reduce-order conj x) (+ acc x)) 0 [1 2 3])
       (fun/foldr (fn [x acc] (swap! foldr-order conj x) (+ x acc)) 0 [1 2 3])
       (is (= [1 2 3] @reduce-order))
-      (is (= [3 2 1] @foldr-order)))))
+      (is (= [3 2 1] @foldr-order))))
+
+  (testing "string concatenation is right-associative"
+    (is (= "a(b(c(d)))" (fun/foldr #(str %1 "(" %2 ")") "d" ["a" "b" "c"]))))
+
+  (testing "works with a lazy sequence"
+    (is (= 15 (fun/foldr + 0 (range 1 6)))))
+
+  (testing "nil accumulator is valid"
+    (is (= '(1 2 3) (fun/foldr cons nil [1 2 3]))))
+
+  (testing "accumulates into a map"
+    (is (= {1 :odd 2 :even 3 :odd}
+           (fun/foldr (fn [x acc] (assoc acc x (if (odd? x) :odd :even)))
+                      {}
+                      [1 2 3]))))
+
+  (testing "larger sequence preserves right-associativity"
+    (let [result (fun/foldr (fn [x acc] (str x "->" acc)) "end" (range 1 6))]
+      (is (= "1->2->3->4->5->end" result)))))
+
+(deftest foldr-reduced-threshold-test
+  (testing "reduced stops unwinding when running total exceeds threshold"
+    (let [result (fun/foldr (fn [x acc]
+                              (let [s (+ x acc)]
+                                (if (> s 10) (reduced s) s)))
+                            0
+                            [1 2 3 4 5])]
+      (is (= 12 result)))))
+
+(deftest foldr-reduced-short-circuit-test
+  (testing "reduced short-circuits remaining f calls"
+    (let [call-count (atom 0)
+          result (fun/foldr (fn [x acc]
+                              (swap! call-count inc)
+                              (if (= x 3)
+                                (reduced acc)
+                                (+ x acc)))
+                            0
+                            [1 2 3 4 5])]
+      (is (= 9 result))
+      (is (= 3 @call-count)))))
 
 (deftest iota-test
   (is (= [1 2 3 4 5 6 7 8 9]
          (fun/iota identity inc #(< % 10) 1)))
-  
+
   (is (= [1 2 4 8 16 32]
          (fun/iota identity #(* 2 %) #(< % 64) 1))))
 
@@ -92,7 +133,7 @@
 
 (deftest !pred-test
   (testing "base cases"
-    (let [validate-long     (fun/!pred nil? parse-long #(ex-info (format "Expected double, got: %s" %) {}))
+    (let [validate-long (fun/!pred nil? parse-long #(ex-info (format "Expected double, got: %s" %) {}))
           validate-not-even (fun/!pred even? parse-long #(ex-info (format "Expected odd number, got: %s" %) {}))]
       (is (validate-long "42"))
       (is (thrown? Exception (validate-long "one")))
@@ -111,15 +152,15 @@
     (let [positive-only (fun/!pred #(<= % 0) identity "Number must be positive")]
       (is (= 5 (positive-only 5)))
       (is (thrown-with-msg? Exception #"Number must be positive" (positive-only -3))))
-    
-    (let [non-empty (fun/!pred empty? vec {:ex-info/msg "Collection cannot be empty" 
+
+    (let [non-empty (fun/!pred empty? vec {:ex-info/msg "Collection cannot be empty"
                                            :error-code 400})]
       (is (= [1 2 3] (non-empty [1 2 3])))
       (is (thrown? Exception (non-empty []))))
-    
-    (let [in-range (fun/!pred #(or (< % 0) (> % 100)) 
-                              identity 
-                              (fn [x] (ex-info (format "Value %d out of range [0,100]" x) 
+
+    (let [in-range (fun/!pred #(or (< % 0) (> % 100))
+                              identity
+                              (fn [x] (ex-info (format "Value %d out of range [0,100]" x)
                                                {:value x :min 0 :max 100})))]
       (is (= 50 (in-range 50)))
       (is (thrown-with-msg? Exception #"Value 150 out of range" (in-range 150)))))
@@ -128,20 +169,20 @@
     (let [always-ok (fun/!pred (constantly false) inc)]
       (is (= 6 (always-ok 5)))
       (is (= 1 (always-ok 0))))
-    
+
     (let [always-throw (fun/!pred (constantly true) identity "Always fails")]
       (is (thrown? Exception (always-throw "anything")))))
 
   (testing "original CP use cases"
-    (let [non-negative? (fun/!pred neg? identity 
-                                   #(ex-info "Contract violation: result must be non-negative" 
+    (let [non-negative? (fun/!pred neg? identity
+                                   #(ex-info "Contract violation: result must be non-negative"
                                              {:value %}))
-          non-empty?    (fun/!pred empty? identity
-                                   #(ex-info "Contract violation: result cannot be empty"
-                                             {:value %}))
-          sorted?       (fun/!pred #(not (apply <= %)) identity
-                                   #(ex-info "Contract violation: result must be sorted"
-                                             {:value %}))
+          non-empty? (fun/!pred empty? identity
+                                #(ex-info "Contract violation: result cannot be empty"
+                                          {:value %}))
+          sorted? (fun/!pred #(not (apply <= %)) identity
+                             #(ex-info "Contract violation: result must be sorted"
+                                       {:value %}))
           withdraw (fn [balance amount]
                      {:post [(non-negative? %)]}
                      (- balance amount))
@@ -157,26 +198,26 @@
           broken-merge (fn [xs ys]
                          {:post [(sorted? %)]}
                          (concat xs ys))]
-      
+
       (is (= 50 (withdraw 100 50)))
       (is (thrown-with-msg? Exception #"Contract violation: result must be non-negative"
                             (withdraw 100 150)))
-      
+
       (is (= [2 4] (filter-evens [1 2 3 4])))
       (is (thrown-with-msg? Exception #"Contract violation: result cannot be empty"
                             (filter-evens [1 3 5])))
-      
+
       (is (= [1 2 3 4 5 6] (merge-sorted [1 3 5] [2 4 6])))
-      
+
       (is (thrown-with-msg? Exception #"Contract violation: result must be sorted"
                             (broken-merge [3 1] [2])))))
 
   (testing "bounds checking"
-    (let [valid-account? (fun/!pred 
-                          #(or (neg? (:balance %)) 
+    (let [valid-account? (fun/!pred
+                          #(or (neg? (:balance %))
                                (empty? (:transactions %)))
                           identity
-                          (fn [acct] 
+                          (fn [acct]
                             (ex-info "Contract violation: invalid account state"
                                      {:reason (cond
                                                 (neg? (:balance acct)) "negative balance"
@@ -196,7 +237,7 @@
 
       (is (valid-account? (create-account 100)))
       (is (valid-account? (transfer (create-account 100) 50)))
-      
+
       (is (try (transfer (create-account 100) 150)
                (catch clojure.lang.ExceptionInfo ei
                  (= "negative balance" (-> ei ex-data :reason)))))
