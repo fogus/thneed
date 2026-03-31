@@ -9,7 +9,7 @@
 ;;
 
 (ns fogus.config
-  "A dead simple config reader for Clojure supporting multiple formats and locations."
+  "A dead simple config reader for Clojure supporting multiple formats and extensions."
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clojure.string :as string]))
@@ -28,17 +28,38 @@
 
 (defmethod -read-format :edn
   [_ contents]
-  (-read-format _ contents))
+  (-read-format :default contents))
+
+(defmethod -read-format :properties
+  [_ contents]
+  (let [props (java.util.Properties.)]
+    (.load props (java.io.StringReader. contents))
+    (into {} props)))
 
 (defn read-config
-  "Usage:
-      (config-reader \"/path/to/cfg.edn\" :as :edn)
-  "
+  "Reads a configuration file from `from` (a resource path string or reader)
+  and parses it according to `format`.
+
+  Supported formats:
+    :edn        - EDN file, returns a Clojure data structure
+    :properties - Java .properties file, returns a map of string keys to string values
+
+  New formats can be supported by extending the `-read-format` multimethod,
+  which dispatches on the format keyword. For example, to add JSON support
+  using a library like `cheshire`:
+
+      (defmethod fogus.config/-read-format :json
+        [_ contents]
+        (cheshire.core/parse-string contents true))
+
+  With that in place, callers can use the `:json` tag to read those JSON config files.
+
+  Unrecognized format keywords fall through to the `:default` EDN parsing."
   [from _ format]
   (with-open [rdr (-reader from)]
     (if-let [contents (slurp rdr)]
       (-read-format format contents)
       (throw (ex-info
-               (str "Failed to read a configuration file from " from)
-               {:from from})))))
+              (str "Failed to read a configuration file from " from)
+              {:from from})))))
 
