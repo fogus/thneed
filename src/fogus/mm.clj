@@ -9,9 +9,17 @@
 ;;
 
 (ns fogus.mm
-  "Utilities for working with multimethods. WiP")
+  "Utilities for working with multimethods.")
 
 (defmacro defmethod-explicit
+  "In a standard defmethod body you have no direct reference to the dispatch value itself.
+  Instead, you'd have to hardcode it as a literal or look it up from somewhere else.
+
+  This macro allows you to opt into naming the dispatch value to a name via ``:as DV``:
+
+      (defmethod-explicit my-multi :bar :as the-dv [x] (str the-dv :-> x))
+
+  Shadowing ``DV`` in the arglist will nullify the utility of the named dispatch value."
   [multifn dispatch-val & fn-tail]
   (let [[kw n & body] fn-tail]
     (if (= :as kw)
@@ -23,11 +31,3 @@
           addMethod
           ~dispatch-val
           (fn ~@fn-tail)))))
-
-(defmacro defmethod-anaphoric
-  [multifn dispatch-val & fn-tail]
-  `(. ~(with-meta multifn {:tag 'clojure.lang.MultiFn})
-      addMethod
-      ~dispatch-val
-      (let [~'$ ~dispatch-val]
-        (fn ~@fn-tail))))
