@@ -245,3 +245,16 @@
       (is (try (valid-account? {:balance 100 :transactions []})
                (catch clojure.lang.ExceptionInfo ei
                  (= "no transactions" (-> ei ex-data :reason))))))))
+
+(deftest separate-test
+  (is (= [[] []]         (fun/separate even? [])))
+  (is (= [[2 4 6] []]    (fun/separate even? [2 4 6])))
+  (is (= [[] [1 3 5]]    (fun/separate even? [1 3 5])))
+  (is (= [[2 4] [1 3 5]] (fun/separate even? [1 2 3 4 5])))
+
+  (let [results [{:status :ok  :val 1}
+                 {:status :err :val 2}
+                 {:status :ok  :val 3}]
+        [ok err] (fun/separate #(= :ok (:status %)) results)]
+    (is (= [1 3] (mapv :val ok)))
+    (is (= [2]   (mapv :val err)))))

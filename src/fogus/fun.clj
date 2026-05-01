@@ -43,6 +43,14 @@
       @result
       result)))
 
+(def
+  ^{:doc "Takes a predicate pred? and a collection and returns a vector of two lists, the
+first being the elements that pred? returned true, and the other being the elements
+that were false."
+    :arglists '([pred? coll])}
+  separate
+  (juxt filter remove))
+
 (defn iota
   "Generates a lazy sequence by repeatedly applying a transformation function t to 
   the result of a next-step function nxt, starting from initial value y, and 
