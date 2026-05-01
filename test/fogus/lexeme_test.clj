@@ -67,3 +67,6 @@
 
   (is (= (lex/qualify 'a `foo)
          'a/foo)))
+
+(deftest gensym+-test
+  (is (-> "foo" lex/gensym+ meta :gensym)))

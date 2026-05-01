@@ -47,3 +47,12 @@
                :default name)]
     (ctor lex)))
 
+(defn gensym+
+  "Works like clojure.core/gensym except adds metadata to the returned
+  symbol with a :gensym->true mapping."
+  ([] (gensym+ "G__"))
+  ([prefix]
+   (let [sym (gensym prefix)]
+     (with-meta
+       sym
+       (merge {:gensym true} (meta sym))))))
