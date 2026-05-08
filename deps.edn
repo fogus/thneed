@@ -16,6 +16,5 @@
           slipset/deps-deploy {:mvn/version "RELEASE"}}
    :ns-default build}
 
-  :dev {:extra-deps {org.clojure/clojure {:mvn/version "1.12.3"}}}}
-
+  :dev {:extra-deps {org.clojure/clojure {:mvn/version "1.12.4"}}}}
 }

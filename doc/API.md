@@ -99,7 +99,7 @@ Dissociates a value in a nested associative structure asc, where path is a
 # <a name="fogus.config">fogus.config</a>
 
 
-A dead simple config reader for Clojure supporting multiple formats and locations.
+A dead simple config reader for Clojure supporting multiple formats and extensions.
 
 
 
@@ -122,10 +122,25 @@ A dead simple config reader for Clojure supporting multiple formats and location
 (read-config from _ format)
 ```
 
-Usage:
-      (config-reader "/path/to/cfg.edn" :as :edn)
-  
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/config.clj#L33-L43">Source</a></sub></p>
+Reads a configuration file from `from` (a resource path string or reader)
+  and parses it according to `format`.
+
+  Supported formats:
+    :edn        - EDN file, returns a Clojure data structure
+    :properties - Java .properties file, returns a map of string keys to string values
+
+  New formats can be supported by extending the [`-read-format`](#fogus.config/-read-format) multimethod,
+  which dispatches on the format keyword. For example, to add JSON support
+  using a library like `cheshire`:
+
+      (defmethod fogus.config/-read-format :json
+        [_ contents]
+        (cheshire.core/parse-string contents true))
+
+  With that in place, callers can use the `:json` tag to read those JSON config files.
+
+  Unrecognized format keywords fall through to the `:default` EDN parsing.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/config.clj#L39-L64">Source</a></sub></p>
 
 -----
 # <a name="fogus.fun">fogus.fun</a>
@@ -154,7 +169,7 @@ A higher-order function that creates a validated wrapper around another function
   as its return.
   
   If the predicate returns false, it returns the result unchanged.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L63-L85">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L82-L104">Source</a></sub></p>
 
 ## <a name="fogus.fun/downto">`downto`</a><a name="fogus.fun/downto"></a>
 ``` clojure
@@ -164,12 +179,12 @@ A higher-order function that creates a validated wrapper around another function
 
 Generates an descending lazy sequence of numbers from start (inclusive) down to but not 
   including end.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L49-L53">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L68-L72">Source</a></sub></p>
 
 ## <a name="fogus.fun/foldr">`foldr`</a><a name="fogus.fun/foldr"></a>
 ``` clojure
 
-(foldr f acc [h & t :as coll])
+(foldr f acc coll)
 ```
 
 Right-associative fold over a collection. Unlike reduce (which is left-associative
@@ -185,8 +200,10 @@ Right-associative fold over a collection. Unlike reduce (which is left-associati
   2. You need to build right-associative data structures (e.g., linked lists)
   3. You want lazy evaluation (foldr can short-circuit on lazy sequences)
   4. The combining function needs to see the 'rest result' before processing current
+
+  The function f may return a `reduced` value to terminate the fold early.
   
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L15-L33">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L23-L44">Source</a></sub></p>
 
 ## <a name="fogus.fun/iota">`iota`</a><a name="fogus.fun/iota"></a>
 ``` clojure
@@ -198,7 +215,18 @@ Generates a lazy sequence by repeatedly applying a transformation function t to
   the result of a next-step function nxt, starting from initial value y, and 
   continuing while the stop predicate is truthy. This is a generalized iteration 
   function for creating sequences with custom stepping and transformation logic.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L35-L41">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L54-L60">Source</a></sub></p>
+
+## <a name="fogus.fun/separate">`separate`</a><a name="fogus.fun/separate"></a>
+``` clojure
+
+(separate pred? coll)
+```
+
+Takes a predicate pred? and a collection and returns a vector of two lists, the
+first being the elements that pred? returned true, and the other being the elements
+that were false.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L46-L52">Source</a></sub></p>
 
 ## <a name="fogus.fun/to">`to`</a><a name="fogus.fun/to"></a>
 ``` clojure
@@ -208,7 +236,7 @@ Generates a lazy sequence by repeatedly applying a transformation function t to
 
 Generates a lazy sequence from start to end (exclusive), automatically choosing ascending
   or descending direction based on the relationship between start and end values.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L55-L61">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L74-L80">Source</a></sub></p>
 
 ## <a name="fogus.fun/upto">`upto`</a><a name="fogus.fun/upto"></a>
 ``` clojure
@@ -218,7 +246,7 @@ Generates a lazy sequence from start to end (exclusive), automatically choosing 
 
 Generates an ascending lazy sequence of numbers from start (inclusive) up to but not 
   including end.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L43-L47">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L62-L66">Source</a></sub></p>
 
 -----
 # <a name="fogus.it">fogus.it</a>
@@ -304,6 +332,17 @@ Ensures that chunked sequences are evaluated one element
 
 
 
+
+## <a name="fogus.lexeme/gensym+">`gensym+`</a><a name="fogus.lexeme/gensym+"></a>
+``` clojure
+
+(gensym+)
+(gensym+ prefix)
+```
+
+Works like clojure.core/gensym except adds metadata to the returned
+  symbol with a :gensym->true mapping.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/lexeme.clj#L50-L58">Source</a></sub></p>
 
 ## <a name="fogus.lexeme/lexeme?">`lexeme?`</a><a name="fogus.lexeme/lexeme?"></a>
 ``` clojure
@@ -473,18 +512,10 @@ Utilities dealing with metadata. WiP
 # <a name="fogus.mm">fogus.mm</a>
 
 
-Utilities for working with multimethods. WiP
+Utilities for working with multimethods.
 
 
 
-
-## <a name="fogus.mm/defmethod-anaphoric">`defmethod-anaphoric`</a><a name="fogus.mm/defmethod-anaphoric"></a>
-``` clojure
-
-(defmethod-anaphoric multifn dispatch-val & fn-tail)
-```
-Function.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L27-L33">Source</a></sub></p>
 
 ## <a name="fogus.mm/defmethod-explicit">`defmethod-explicit`</a><a name="fogus.mm/defmethod-explicit"></a>
 ``` clojure
@@ -492,7 +523,16 @@ Function.
 (defmethod-explicit multifn dispatch-val & fn-tail)
 ```
 Function.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L14-L25">Source</a></sub></p>
+
+In a standard defmethod body you have no direct reference to the dispatch value itself.
+  Instead, you'd have to hardcode it as a literal or look it up from somewhere else.
+
+  This macro allows you to opt into naming the dispatch value to a name via ``:as DV``:
+
+      (defmethod-explicit my-multi :bar :as the-dv [x] (str the-dv :-> x))
+
+  Shadowing ``DV`` in the arglist will nullify the utility of the named dispatch value.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/mm.clj#L14-L33">Source</a></sub></p>
 
 -----
 # <a name="fogus.numbers">fogus.numbers</a>

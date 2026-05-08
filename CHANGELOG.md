@@ -1,5 +1,11 @@
-# v1.1.9 (unreleased)
+# v1.1.10  (unreleased)
 - TBD
+# v1.1.9
+- Added support for `reduced` to `fogus.fun/foldr`
+- Removed `fogus.mm/defmethod-anaphoric` entirely
+- Added `fogus.fun/separate` function to sort coll per pred true/false
+- Added `fogus.lexeme/gensym+` with `:gensym->true` metadata on returned symbol
+- General docstring additions/fixes.
 # v1.1.8
 - Added fogus.text/org that accepts a very small subset of org-mode
 # v1.1.7
