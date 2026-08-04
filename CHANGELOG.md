@@ -1,5 +1,6 @@
-# v1.1.10  (unreleased)
-- TBD
+# v1.1.11 (unreleased)
+# v1.1.10
+- Added sliding window transducer `slide` into new ns `fogus.xf`
 # v1.1.9
 - Added support for `reduced` to `fogus.fun/foldr`
 - Removed `fogus.mm/defmethod-anaphoric` entirely
