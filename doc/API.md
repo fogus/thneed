@@ -999,3 +999,23 @@ Parses a string of concatenated keywords into a vector.
 
 Parses a comma-delimited path string into a vector of path elements.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/util.clj#L24-L28">Source</a></sub></p>
+
+-----
+# <a name="fogus.xf">fogus.xf</a>
+
+
+Transducers
+
+
+
+
+## <a name="fogus.xf/slide">`slide`</a><a name="fogus.xf/slide"></a>
+``` clojure
+
+(slide n)
+```
+
+Returns a transducer that partitions the input stream into sliding
+  windows each of size n. In case there are not enough elements to pad
+  out the last window, then returns a partition with less than n items.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/xf.clj#L14-L35">Source</a></sub></p>
