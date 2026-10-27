@@ -1,4 +1,8 @@
-# v1.1.11 (unreleased)
+# v1.1.12 (unreleased)
+# v1.1.11
+- Deprecated `fogus.maps` functions `assoc-iff` and `deep-merge`
+- Added `fogus.fun/by` that generates a lazy seq from `step`, `end`, and `start`
+- Added `fogus.fun/iterate-while` that generates a lazy seq from a function while a predicate is true.
 # v1.1.10
 - Added sliding window transducer `slide` into new ns `fogus.xf`
 # v1.1.9

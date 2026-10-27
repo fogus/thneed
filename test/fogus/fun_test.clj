@@ -110,6 +110,22 @@
   (is (= [1 2 4 8 16 32]
          (fun/iota identity #(* 2 %) #(< % 64) 1))))
 
+(deftest by-test
+  (are [step end start expected]
+       (= expected (vec (fun/by step end start)))
+    3 12 0 [0 3 6 9]
+    2 10 1 [1 3 5 7 9]
+    1 5 5 []
+    1 5 6 []))
+
+(deftest iterate-while-test
+  (are [f pred start expected]
+       (= expected (vec (fun/iterate-while f pred start)))
+    #(* 2 %) #(< % 100) 1 [1 2 4 8 16 32 64]
+    inc #(< % 5) 3 [3 4]
+    inc #(< % 5) 5 []
+    inc #(< % 1) 0 [0]))
+
 (deftest upto-test
   (is (= [1 2 3 4 5] (fun/upto 6 1)))
   (is (= [] (fun/upto 5 5)))

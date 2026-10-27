@@ -169,7 +169,17 @@ A higher-order function that creates a validated wrapper around another function
   as its return.
   
   If the predicate returns false, it returns the result unchanged.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L82-L104">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L94-L116">Source</a></sub></p>
+
+## <a name="fogus.fun/by">`by`</a><a name="fogus.fun/by"></a>
+``` clojure
+
+(by step end start)
+```
+
+Generates a lazy sequence of numbers starting from start, incrementing by step, and
+   continuing while the current value is still less than end.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L62-L66">Source</a></sub></p>
 
 ## <a name="fogus.fun/downto">`downto`</a><a name="fogus.fun/downto"></a>
 ``` clojure
@@ -179,7 +189,7 @@ A higher-order function that creates a validated wrapper around another function
 
 Generates an descending lazy sequence of numbers from start (inclusive) down to but not 
   including end.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L68-L72">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L74-L78">Source</a></sub></p>
 
 ## <a name="fogus.fun/foldr">`foldr`</a><a name="fogus.fun/foldr"></a>
 ``` clojure
@@ -217,6 +227,16 @@ Generates a lazy sequence by repeatedly applying a transformation function t to
   function for creating sequences with custom stepping and transformation logic.
 <p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L54-L60">Source</a></sub></p>
 
+## <a name="fogus.fun/iterate-while">`iterate-while`</a><a name="fogus.fun/iterate-while"></a>
+``` clojure
+
+(iterate-while f pred start)
+```
+
+Repeatedly apply a function while values satisfy a predicate.
+   Returns a lazy sequence of the results, starting with the initial value.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L88-L92">Source</a></sub></p>
+
 ## <a name="fogus.fun/separate">`separate`</a><a name="fogus.fun/separate"></a>
 ``` clojure
 
@@ -236,7 +256,7 @@ that were false.
 
 Generates a lazy sequence from start to end (exclusive), automatically choosing ascending
   or descending direction based on the relationship between start and end values.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L74-L80">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L80-L86">Source</a></sub></p>
 
 ## <a name="fogus.fun/upto">`upto`</a><a name="fogus.fun/upto"></a>
 ``` clojure
@@ -246,7 +266,7 @@ Generates a lazy sequence from start to end (exclusive), automatically choosing 
 
 Generates an ascending lazy sequence of numbers from start (inclusive) up to but not 
   including end.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L62-L66">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/fun.clj#L68-L72">Source</a></sub></p>
 
 -----
 # <a name="fogus.it">fogus.it</a>
@@ -399,8 +419,9 @@ Remove the qualifying ns from the ident.
 (assoc-iff m k v & kvs)
 ```
 
-Like assoc, but only associates key-value pairs when the value is non-nil.
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L42-L51">Source</a></sub></p>
+DEPRECATED: use clojure.core/assoc-some instead.
+  Like assoc, but only associates key-value pairs when the value is non-nil.
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L42-L52">Source</a></sub></p>
 
 ## <a name="fogus.maps/deep-merge">`deep-merge`</a><a name="fogus.maps/deep-merge"></a>
 ``` clojure
@@ -408,11 +429,12 @@ Like assoc, but only associates key-value pairs when the value is non-nil.
 (deep-merge & vals)
 ```
 
-Recursively merges nested maps. When merging values at the same key:
+DEPRECATED: use clojure.core/merge-deep instead.
+  Recursively merges nested maps. When merging values at the same key:
   
   - If both values are maps, recursively merges them
   - Otherwise, takes the rightmost value (consistent with merge)
-<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L53-L61">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/thneed/blob/master/src/fogus/maps.clj#L54-L63">Source</a></sub></p>
 
 ## <a name="fogus.maps/keys-apply">`keys-apply`</a><a name="fogus.maps/keys-apply"></a>
 ``` clojure

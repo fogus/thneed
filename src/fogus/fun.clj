@@ -59,6 +59,12 @@ that were false."
   [t nxt stop y]
   (take-while stop (iterate #(t (nxt %)) y)))
 
+(defn by
+  "Generates a lazy sequence of numbers starting from start, incrementing by step, and
+   continuing while the current value is still less than end."
+  [step end start]
+  (iota identity #(+ % step) #(< % end) start))
+
 (defn upto
   "Generates an ascending lazy sequence of numbers from start (inclusive) up to but not 
   including end."
@@ -78,6 +84,12 @@ that were false."
   (if (<= start end)
     (upto end start)
     (downto end start)))
+
+(defn iterate-while
+  "Repeatedly apply a function while values satisfy a predicate.
+   Returns a lazy sequence of the results, starting with the initial value."
+  [f pred start]
+  (iota identity f pred start))
 
 (defn !pred
   "A higher-order function that creates a validated wrapper around another function.
@@ -102,5 +114,3 @@ that were false."
              (map? ex-dispatch) (ex-info (:ex-info/msg ex-dispatch) ex-dispatch)
              (ifn? ex-dispatch) (apply ex-dispatch args)))
          ret)))))
-
-
